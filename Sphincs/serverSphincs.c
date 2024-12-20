@@ -84,7 +84,7 @@ void wait_for_ready_flag() {
  while (access("ready.flag", F_OK) == -1) {
     usleep(10000); // sleep for 10ms
  }
- remove("ready.flag"); // clean up the flag file
+ remove("ready.flag"); // sphincs_utils up the flag file
 }
 int main() {
     // Open CSV and log files for writing the results
