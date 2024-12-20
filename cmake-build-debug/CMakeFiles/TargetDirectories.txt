@@ -1,0 +1,6 @@
+/Users/flrnvsc/CLionProjects/IT-Projekt/cmake-build-debug/CMakeFiles/ClientKyber.dir
+/Users/flrnvsc/CLionProjects/IT-Projekt/cmake-build-debug/CMakeFiles/ServerKyber.dir
+/Users/flrnvsc/CLionProjects/IT-Projekt/cmake-build-debug/CMakeFiles/ClientSphincs.dir
+/Users/flrnvsc/CLionProjects/IT-Projekt/cmake-build-debug/CMakeFiles/ServerSphincs.dir
+/Users/flrnvsc/CLionProjects/IT-Projekt/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/flrnvsc/CLionProjects/IT-Projekt/cmake-build-debug/CMakeFiles/rebuild_cache.dir

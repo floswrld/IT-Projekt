@@ -1,0 +1,3 @@
+/Users/flrnvsc/CLionProjects/IT-Projekt/cmake-build-debug/_deps/pqclean-subbuild/CMakeFiles/pqclean-populate.dir
+/Users/flrnvsc/CLionProjects/IT-Projekt/cmake-build-debug/_deps/pqclean-subbuild/CMakeFiles/edit_cache.dir
+/Users/flrnvsc/CLionProjects/IT-Projekt/cmake-build-debug/_deps/pqclean-subbuild/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,87 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.17"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "IT-Projekt",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ClientKyber::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ClientKyber-Debug-161d51904e905df90312.json",
+					"name" : "ClientKyber",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ClientSphincs::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ClientSphincs-Debug-18b360d79f3687f423d3.json",
+					"name" : "ClientSphincs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ServerKyber::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ServerKyber-Debug-d397a18d713ede710e09.json",
+					"name" : "ServerKyber",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ServerSphincs::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ServerSphincs-Debug-ac1d45ad31ebf0ea4cd0.json",
+					"name" : "ServerSphincs",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/flrnvsc/CLionProjects/IT-Projekt/cmake-build-debug",
+		"source" : "/Users/flrnvsc/CLionProjects/IT-Projekt"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}
