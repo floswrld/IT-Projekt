@@ -14,6 +14,10 @@
 #define CSV_FILE "server_timings.csv"
 #define LOG_FILE "server_log.txt"
 
+int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
+    return ciphertext_len;
+}
+
 int main() {
     double total_keygen_time = 0;
     double total_decap_time = 0;
