@@ -12,3 +12,4 @@ target_include_directories(ServerKyber PRIVATE
 
 find_package(OpenSSL REQUIRED)
 target_link_libraries(ClientKyber PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(ServerKyber PRIVATE OpenSSL::SSL OpenSSL::Crypto)

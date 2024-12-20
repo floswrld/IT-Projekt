@@ -8,7 +8,7 @@
 #include <openssl/aes.h>
 #include <openssl/evp.h>
 #include "api.h"
-#include "aes_crypto.h"
+//#include "aes_crypto.h"
 #define SHA256_DIGEST_LENGTH 32 // Define SHA-256 hash length
 #define NUM_ITERATIONS 1000 // Define the number of iterations
 #define CSV_FILE "client_timings_sphincs.csv"
