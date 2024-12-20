@@ -14,7 +14,7 @@
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8080
 #define URL "https://ogcapi.hft-stuttgart.de/sta/icity_data_security/v1.1"
-#define ITERATIONS 1000
+#define ITERATIONS 10
 #define CSV_FILE "client_timings.csv"
 #define LOG_FILE "client_log.txt"
 #define RETRY_DELAY 1000000 // 1 second
