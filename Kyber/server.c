@@ -7,7 +7,8 @@
 #include <unistd.h>
 #include <openssl/sha.h>
 #include <time.h>
-#include "api.h"
+#include "/include/kyber_utils/api.h"
+
 #define PORT 8080
 #define ITERATIONS 1000
 #define CSV_FILE "server_timings.csv"
