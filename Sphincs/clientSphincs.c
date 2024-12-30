@@ -93,16 +93,18 @@ int encrypt(unsigned char *plaintext, size_t plaintext_len, unsigned char *key, 
 }
 
 int main() {
+  	printf("Hello World!\n");
     double total_key_generation_time = 0.0;
     double total_signing_time = 0.0;
     // Open CSV file for writing the results
     FILE *csv_file = fopen(CSV_FILE, "w");
     FILE *log_file = fopen(LOG_FILE, "w");
+    printf("Hello World 2!\n");
     if (!csv_file || !log_file) {
         fprintf(stderr, "Error: Could not open output files.\n");
         return 1;
     }
-
+	printf("Hello World 3!\n");
     fprintf(csv_file, "Iteration,Key Generation Time (seconds),Signing Time (seconds)\n");
     for (int i = 0; i < NUM_ITERATIONS; i++) {
         fprintf(log_file, "Iteration: %d\n", i + 1);
