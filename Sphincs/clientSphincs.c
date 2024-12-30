@@ -7,7 +7,7 @@
 #include <curl/curl.h>
 #include <openssl/aes.h>
 #include <openssl/evp.h>
-#include "/include/sphincs_utils/api.h"
+#include "../include/sphincs_utils/api.h"
 
 #define SHA256_DIGEST_LENGTH 32 // Define SHA-256 hash length
 #define NUM_ITERATIONS 1000 // Define the number of iterations
