@@ -88,6 +88,10 @@ void write_ready_flag() {
     fclose(file);
 }
 
+int encrypt(unsigned char *plaintext, size_t plaintext_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext) {
+    return plaintext_len;
+}
+
 int main() {
     double total_key_generation_time = 0.0;
     double total_signing_time = 0.0;

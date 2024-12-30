@@ -86,6 +86,7 @@ void wait_for_ready_flag() {
  }
  remove("ready.flag"); // sphincs_utils up the flag file
 }
+
 int main() {
     // Open CSV and log files for writing the results
     FILE *csv_file = fopen(CSV_FILE, "w");
