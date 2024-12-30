@@ -138,6 +138,7 @@ int main() {
         free(signature);
         free(data);
     }
+    printf("Hello World End!\n");
     fclose(csv_file);
     fclose(log_file);
     return 0;

@@ -10,7 +10,7 @@
 #include "../include/sphincs_utils/api.h"
 
 #define SHA256_DIGEST_LENGTH 32 // Define SHA-256 hash length
-#define NUM_ITERATIONS 10 // Define the number of iterations
+#define NUM_ITERATIONS 1 // Define the number of iterations
 #define CSV_FILE "client_timings_sphincs.csv"
 #define LOG_FILE "client_log_sphincs.txt"
 
@@ -193,7 +193,7 @@ int main() {
         write_ready_flag();
         fprintf(log_file, "Iteration %d complete.\n", i + 1);
     }
-
+	printf("Hello World End!\n");
     fprintf(csv_file, "Average,%f,%f\n", total_key_generation_time / NUM_ITERATIONS, total_signing_time /
         NUM_ITERATIONS);
     fclose(csv_file);
