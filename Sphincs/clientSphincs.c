@@ -107,7 +107,7 @@ int main() {
 	printf("Hello World 3!\n");
     fprintf(csv_file, "Iteration,Key Generation Time (seconds),Signing Time (seconds)\n");
     for (int i = 0; i < NUM_ITERATIONS; i++) {
-         printf("Iteration "+i+"\n");
+         printf("Iteration %d\n",i+1);
         fprintf(log_file, "Iteration: %d\n", i + 1);
 
         uint8_t public_key[PQCLEAN_SPHINCSSHAKE256SSIMPLE_CLEAN_CRYPTO_PUBLICKEYBYTES];
