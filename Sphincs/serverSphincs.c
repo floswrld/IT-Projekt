@@ -6,8 +6,7 @@
 #include <unistd.h> // Include for sleep()
 #include <openssl/aes.h>
 #include <openssl/evp.h>
-#include "/Users/flrnvsc/Documents/Visual Studio 2015/IT-Projekt2/IT-Projekt2/IT-Projekt2/include/PQClean/crypto_kem/kyber1024/clean/api.h"
-#include <api.h>
+#include "/include/sphincs_utils/api.h"
 #define SHA256_DIGEST_LENGTH 32 // Define SHA-256 hash length
 #define NUM_ITERATIONS 1000 // Define the number of iterations
 #define CSV_FILE "server_timings_sphincs.csv"
