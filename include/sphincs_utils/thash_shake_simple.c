@@ -8,6 +8,7 @@
 #include "utils.h"
 
 #include "fips202.h"
+#include "compat.h"
 
 /**
  * Takes an array of inblocks concatenated arrays of SPX_N bytes.
