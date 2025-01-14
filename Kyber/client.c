@@ -133,6 +133,9 @@ int main() {
         }
 
         unsigned char encrypted_data[4096];
+        /*
+			encryption
+         */
         int encrypted_data_len = aes_encrypt(chunk.memory, chunk.size, aes_key, iv, encrypted_data);
         send(sock, iv, sizeof(iv), 0);
         send(sock, encrypted_data, encrypted_data_len, 0);

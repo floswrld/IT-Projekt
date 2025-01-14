@@ -111,6 +111,9 @@ int main() {
         int encrypted_data_len = read(new_socket, encrypted_data, sizeof(encrypted_data));
         fprintf(log_file, "Encrypted data received from client (iteration %d).\n", i+1);
         unsigned char decrypted_data[4096];
+        /*
+			decrypt
+         */
         int decrypted_data_len = aes_decrypt(encrypted_data, encrypted_data_len, aes_key, iv, decrypted_data);
         if (decrypted_data_len >= 0) {
             fprintf(log_file, "Decrypted data (iteration %d): %.100s...\n", i+1, decrypted_data);

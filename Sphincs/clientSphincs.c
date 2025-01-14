@@ -144,6 +144,9 @@ int main() {
         fclose(file);
         // Encrypt the data before signing
         unsigned char *ciphertext = malloc(message_len + AES_BLOCK_SIZE);
+        /*
+			encrypt
+         */
         int ciphertext_len = encrypt(message, message_len, key, iv, ciphertext);
         // Save the ciphertext to a file
         save_to_file("encrypted_data.bin", ciphertext, ciphertext_len);
