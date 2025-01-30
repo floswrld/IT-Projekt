@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <microhttpd.h>
 #include <openssl/sha.h>
 #include <time.h>
 #include "../include/kyber_utils/api.h"
