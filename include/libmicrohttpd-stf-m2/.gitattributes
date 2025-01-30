@@ -1,0 +1,10 @@
+*.m4	eol=lf
+*.sh	eol=lf
+configure.ac	eol=lf
+makefile.am	eol=lf
+.gitattributes	eol=lf
+*.key	eol=lf
+*.crt	eol=lf
+*.pem	eol=lf
+/scripts/*.rec	eol=lf
+/scripts/*.template	eol=lf

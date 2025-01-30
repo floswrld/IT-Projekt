@@ -1,0 +1,7 @@
+  /**
+{{EComment}}
+   * The parameter value must be placed to the
+   * @a {{UName}} member.
+   */
+  {{EName}} = {{Value}}
+  ,

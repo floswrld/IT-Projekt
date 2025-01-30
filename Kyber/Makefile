@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -I../include/common -I../include/kyber_utils -I../include/libmicrohttpd-master -Wall -Wextra -O2
+CFLAGS = -I../include/common -I../include/kyber_utils -I../include/libmicrohttpd-stf-m2 -Wall -Wextra -O2
 
 # Libraries
 LIBS = -lssl -lcrypto -lcurl
@@ -8,7 +8,7 @@ LIBS = -lssl -lcrypto -lcurl
 # Source directories
 COMMON_SRC = $(wildcard ../include/common/*.c)
 KYBER_UTILS_SRC = $(wildcard ../include/kyber_utils/*.c)
-LIBMICROHTTPD_SRC = $(wildcard ../include/libmicrohttpd-master/*.c)
+LIBMICROHTTPD_SRC = $(wildcard ../include/libmicrohttpd-stf-m2/*.c)
 
 # Sources and targets
 CLIENT_SRC = client.c $(COMMON_SRC) $(KYBER_UTILS_SRC) $(LIBMICROHTTPD_SRC)
