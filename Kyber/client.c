@@ -19,6 +19,7 @@
 #define LOG_FILE "client_log.txt"
 #define RETRY_DELAY 1000000 // 1 second
 
+
 struct MemoryStruct {
     char *memory;
     size_t size;
