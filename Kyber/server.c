@@ -7,7 +7,6 @@
 #include <time.h>
 #include "../include/kyber_utils/api.h"
 #include "../include/kyber_utils/cJSON.h"
-#include "../include/libmicrohttpd-stf-m2/src/include/microhttpd.h"
 
 #define PORT 8080
 #define MAX_POST_SIZE 8192
