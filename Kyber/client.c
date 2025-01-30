@@ -57,6 +57,10 @@ void send_post_request(const char *url, const char *post_data, struct MemoryStru
     curl_easy_cleanup(curl);
 }
 
+int aes_encrypt(unsigned char *plaintext, size_t plaintext_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext) {
+    return plaintext_len;
+}
+
 int main() {
     FILE *csv_file = fopen(CSV_FILE, "w");
     FILE *log_file = fopen(LOG_FILE, "w");
