@@ -8,7 +8,7 @@
 #include <time.h>
 #include "../include/kyber_utils/api.h"
 
-#define API_BASE_URL "http://127.0.0.1:8000"
+#define API_BASE_URL "http://127.0.0.1:8080"
 #define ITERATIONS 1000
 #define CSV_FILE "client_timings.csv"
 #define LOG_FILE "client_log.txt"
