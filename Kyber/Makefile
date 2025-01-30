@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS = -I../include/common -I../include/kyber_utils -Wall -Wextra -O2
 
 # Libraries
-LIBS = -lssl -lcrypto -lcurl
+LIBS = -lssl -lcrypto -lcurl -lmicrohttpd
 
 # Source directories
 COMMON_SRC = $(wildcard ../include/common/*.c)
