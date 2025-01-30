@@ -6,7 +6,7 @@
 #include <openssl/sha.h>
 #include <time.h>
 #include "../include/kyber_utils/api.h"
-#include <cJSON.h>
+#include "../include/kyber_utils/cJSON.h"
 
 #define PORT 8080
 #define MAX_POST_SIZE 8192
