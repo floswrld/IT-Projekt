@@ -2,12 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <microhttpd.h>
-#include <libmicrohttpd.h>
 #include <openssl/sha.h>
 #include <time.h>
 #include "../include/kyber_utils/api.h"
 #include "../include/kyber_utils/cJSON.h"
+#include "../include/libmicrohttpd/src/include/microhttpd.h"
 
 #define PORT 8080
 #define MAX_POST_SIZE 8192
