@@ -100,6 +100,7 @@ int main() {
     for (int i = 0; i < ITERATIONS; i++) {
         struct MemoryStruct response;
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/get_public_key");
+        printf("%s", buffer);
         send_post_request(buffer, "", &response);
 
         if (response.size == 0) {
@@ -140,6 +141,7 @@ int main() {
                 ciphertext, iv, encrypted_data);
 
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
+        printf("%s", buffer);
         send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
         free(response.memory);
