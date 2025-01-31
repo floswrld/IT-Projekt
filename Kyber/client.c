@@ -96,8 +96,6 @@ int main() {
 
     for (int i = 0; i < ITERATIONS; i++) {
         struct MemoryStruct response;
-
-        // 1. Anfrage nach Public Key vom Server
         send_post_request(strcat(API_BASE_URL, "/get_public_key"), "", &response);
 
         if (response.size == 0) {
@@ -107,6 +105,7 @@ int main() {
         }
 
         uint8_t public_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES];
+        printf("%s", response.memory);
         memcpy(public_key, response.memory, PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES);
         free(response.memory);
 
