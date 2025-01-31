@@ -186,6 +186,7 @@ int main() {
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
         send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
+        printf("Server response (iteration %d): %s\n", i + 1, response.memory);
         free(response.memory);
     }
 
