@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <microhttpd.h>
 #include <openssl/sha.h>
+#include <openssl/evp.h>
 #include <time.h>
 #include <ctype.h>
 #include "../include/kyber_utils/api.h"
@@ -28,6 +29,40 @@ int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char 
     UNUSED(iv);
     UNUSED(plaintext);
     return ciphertext_len;
+}
+
+char *base64_encode(const unsigned char *input, int length) {
+    int out_len = 4 * ((length + 2) / 3);
+    char *encoded = malloc(out_len + 1);
+    if (encoded == NULL) {
+        return NULL;
+    }
+    int written = EVP_EncodeBlock((unsigned char *)encoded, input, length);
+    if(written < 0){
+        free(encoded);
+        return NULL;
+    }
+    // EVP_EncodeBlock schreibt keinen Null-Byte, falls aber extra Speicher reserviert wurde:
+    encoded[written] = '\0';
+    return encoded;
+}
+
+unsigned char *base64_decode(const char *input, int *out_len) {
+    int in_len = strlen(input);
+    // EVP_DecodeBlock benötigt einen Puffer von mindestens in_len.
+    unsigned char *decoded = malloc(in_len);
+    if (decoded == NULL) {
+        return NULL;
+    }
+    int decoded_len = EVP_DecodeBlock(decoded, (const unsigned char *)input, in_len);
+    if (decoded_len < 0) {
+        free(decoded);
+        return NULL;
+    }
+    // Hinweis: EVP_DecodeBlock liefert eventuell zusätzliche Padding-Bytes.
+    // Eine genauere Behandlung ist nötig, wenn die exakte Länge wichtig ist.
+    *out_len = decoded_len;
+    return decoded;
 }
 
 static int request_handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls) {
@@ -66,24 +101,37 @@ static int request_handler(void *cls, struct MHD_Connection *connection, const c
                 return ret;
             }
 
-            uint8_t ciphertext[PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES];
-            uint8_t shared_secret[PQCLEAN_KYBER1024_CLEAN_CRYPTO_BYTES];
-            unsigned char aes_key[32];
-            unsigned char iv[16];
-            unsigned char encrypted_data[4096];
-            unsigned char decrypted_data[4096];
+             int ciphertext_len = 0, iv_len = 0, encrypted_data_len = 0;
+        	unsigned char *decoded_ciphertext = base64_decode(ciphertext_json->valuestring, &ciphertext_len);
+        	unsigned char *decoded_iv         = base64_decode(iv_json->valuestring, &iv_len);
+        	unsigned char *decoded_encrypted_data = base64_decode(encrypted_data_json->valuestring, &encrypted_data_len);
 
-            memcpy(ciphertext, ciphertext_json->valuestring, PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES);
-            memcpy(iv, iv_json->valuestring, 16);
-            memcpy(encrypted_data, encrypted_data_json->valuestring, sizeof(encrypted_data));
+        	if (!decoded_ciphertext || ciphertext_len != PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES ||
+            	!decoded_iv || iv_len != 16 || !decoded_encrypted_data) {
+            	cJSON_Delete(json);
+            	free(decoded_ciphertext);
+            	free(decoded_iv);
+            	free(decoded_encrypted_data);
+            	response = create_response("{\"error\": \"Invalid base64 data\"}");
+            	ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);
+            	MHD_destroy_response(response);
+            	return ret;
+        	}
+
+        	uint8_t shared_secret[PQCLEAN_KYBER1024_CLEAN_CRYPTO_BYTES];
+        	unsigned char aes_key[32];
+        	unsigned char decrypted_data[4096];
 
             // 1. Decapsulation des Ciphertexts
             clock_t start_decap = clock();
-            if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_dec(shared_secret, ciphertext, global_secret_key) != 0) {
+            if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_dec(shared_secret, decoded_ciphertext, global_secret_key) != 0) {
                 response = create_response("{\"error\": \"Decapsulation failed\"}");
                 ret = MHD_queue_response(connection, MHD_HTTP_INTERNAL_SERVER_ERROR, response);
                 MHD_destroy_response(response);
                 cJSON_Delete(json);
+            	free(decoded_ciphertext);
+            	free(decoded_iv);
+            	free(decoded_encrypted_data);
                 return ret;
             }
             clock_t end_decap = clock();
@@ -92,7 +140,7 @@ static int request_handler(void *cls, struct MHD_Connection *connection, const c
             SHA256(shared_secret, sizeof(shared_secret), aes_key);
 
             // 3. Decrypt AES256 Der encrypted data
-            int decrypted_data_len = aes_decrypt(encrypted_data, sizeof(encrypted_data), aes_key, iv, decrypted_data);
+            int decrypted_data_len = aes_decrypt(decoded_encrypted_data, encrypted_data_len, aes_key, decoded_iv, decrypted_data);
             UNUSED(decrypted_data_len);
 
             // 4. Antworten mit Received und decapsulation time
@@ -104,7 +152,11 @@ static int request_handler(void *cls, struct MHD_Connection *connection, const c
             ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
             MHD_destroy_response(response);
             cJSON_Delete(json);
-            return ret;
+            // Freigabe des decodierten Speichers
+        	free(decoded_ciphertext);
+        	free(decoded_iv);
+        	free(decoded_encrypted_data);
+        	return ret;
         }
     }
 

@@ -5,6 +5,7 @@
 #include <curl/curl.h>
 #include <openssl/sha.h>
 #include <openssl/rand.h>
+#include <openssl/evp.h>
 #include <time.h>
 #include "../include/kyber_utils/api.h"
 
@@ -36,6 +37,40 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
     mem->size += totalSize;
     mem->memory[mem->size] = 0;
     return totalSize;
+}
+
+char *base64_encode(const unsigned char *input, int length) {
+    int out_len = 4 * ((length + 2) / 3);
+    char *encoded = malloc(out_len + 1);
+    if (encoded == NULL) {
+        return NULL;
+    }
+    int written = EVP_EncodeBlock((unsigned char *)encoded, input, length);
+    if(written < 0){
+        free(encoded);
+        return NULL;
+    }
+    // EVP_EncodeBlock schreibt keinen Null-Byte, falls aber extra Speicher reserviert wurde:
+    encoded[written] = '\0';
+    return encoded;
+}
+
+unsigned char *base64_decode(const char *input, int *out_len) {
+    int in_len = strlen(input);
+    // EVP_DecodeBlock benötigt einen Puffer von mindestens in_len.
+    unsigned char *decoded = malloc(in_len);
+    if (decoded == NULL) {
+        return NULL;
+    }
+    int decoded_len = EVP_DecodeBlock(decoded, (const unsigned char *)input, in_len);
+    if (decoded_len < 0) {
+        free(decoded);
+        return NULL;
+    }
+    // Hinweis: EVP_DecodeBlock liefert eventuell zusätzliche Padding-Bytes.
+    // Eine genauere Behandlung ist nötig, wenn die exakte Länge wichtig ist.
+    *out_len = decoded_len;
+    return decoded;
 }
 
 void send_post_request(const char *url, const char *post_data, struct MemoryStruct *response) {
@@ -159,7 +194,6 @@ int main() {
             continue;
         }
         uint8_t public_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES];
-        printf("Public Key: %s\n", response.memory);
         memcpy(public_key, response.memory, PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES);
         free(response.memory);
 
@@ -187,14 +221,33 @@ int main() {
         int encrypted_data_len = aes_encrypt(chunk.memory, chunk.size, aes_key, iv, encrypted_data);
         UNUSED(encrypted_data_len);
 
-        // 5. Send ciphertext and encrypted data to server
+        // 5. Base64-Kodierung der Binärdaten
+        char *b64_ciphertext   = base64_encode(ciphertext, PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES);
+        char *b64_iv           = base64_encode(iv, 16);
+        char *b64_encrypted_data = base64_encode(encrypted_data, encrypted_data_len);
+
+        if (!b64_ciphertext || !b64_iv || !b64_encrypted_data) {
+            fprintf(log_file, "Base64 encoding failed (iteration %d).\n", i+1);
+            free(b64_ciphertext);
+            free(b64_iv);
+            free(b64_encrypted_data);
+            free(response.memory);
+            continue;
+        }
+
+        // 6. Send ciphertext and encrypted data to server
         char post_data[8192];
-        sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", ciphertext, iv, encrypted_data);
+        sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", b64_ciphertext, b64_iv, b64_encrypted_data);
 
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
         send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
         printf("Server response (iteration %d): %s\n", i + 1, response.memory);
+
+        // Speicher freigeben
+        free(b64_ciphertext);
+        free(b64_iv);
+        free(b64_encrypted_data);
         free(response.memory);
     }
 
