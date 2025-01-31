@@ -9,6 +9,7 @@
 #include "../include/kyber_utils/api.h"
 
 #define ITERATIONS 1000
+#define URL "https://ogcapi.hft-stuttgart.de/sta/icity_data_security/v1.1"
 #define CSV_FILE "client_timings.csv"
 #define LOG_FILE "client_log.txt"
 #define BUFFER_SIZE 256
@@ -82,7 +83,7 @@ void send_get_request(const char *url, struct MemoryStruct *response) {
     curl_easy_cleanup(curl);
 }
 
-int aes_encrypt(unsigned char *plaintext, size_t plaintext_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext) {
+int aes_encrypt(char *plaintext, size_t plaintext_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext) {
     return plaintext_len;
 }
 
@@ -110,6 +111,26 @@ int main() {
     }
     strcat(API_BASE_URL, input);
 
+    // Get Data to encrypt
+    CURL *curl_handle;
+    CURLcode res;
+    struct MemoryStruct chunk;
+    chunk.memory = malloc(1);
+    chunk.size = 0;
+    curl_global_init(CURL_GLOBAL_ALL);
+    curl_handle = curl_easy_init();
+    curl_easy_setopt(curl_handle, CURLOPT_URL, URL);
+    curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
+    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    res = curl_easy_perform(curl_handle);
+
+    if (res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        return 1;
+    }
+    curl_easy_cleanup(curl_handle);
+
     FILE *csv_file = fopen(CSV_FILE, "w");
     FILE *log_file = fopen(LOG_FILE, "w");
 
@@ -121,21 +142,21 @@ int main() {
     fprintf(csv_file, "Iteration,Encapsulation Time (seconds)\n");
 
     for (int i = 0; i < ITERATIONS; i++) {
+      // 1. Public Key Request
         struct MemoryStruct response;
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/get_public_key");
         printf("%s\n", buffer);
         send_get_request(buffer, &response);
-
         if (response.size == 0) {
             fprintf(log_file, "Failed to retrieve public key (iteration %d).\n", i + 1);
             free(response.memory);
             continue;
         }
-
         uint8_t public_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES];
         printf("%s\n", response.memory);
         memcpy(public_key, response.memory, PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES);
         free(response.memory);
+
 
         // 2. Kyber Encapsulation
         uint8_t ciphertext[PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES];
@@ -156,12 +177,12 @@ int main() {
 
         // 4. Daten verschlüsseln (Placeholder)
         unsigned char encrypted_data[4096];
-        int encrypted_data_len = aes_encrypt(response.memory, response.size, aes_key, iv, encrypted_data);
+        // response.memory = plaintext
+        int encrypted_data_len = aes_encrypt(chunk.memory, chunk.size, aes_key, iv, encrypted_data);
 
         // 5. Send ciphertext and encrypted data to server
         char post_data[8192];
-        sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }",
-                ciphertext, iv, encrypted_data);
+        sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", ciphertext, iv, encrypted_data);
 
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
         printf("%s", buffer);

@@ -23,13 +23,11 @@ int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char 
     return ciphertext_len;
 }
 
-static int request_handler(void *cls, struct MHD_Connection *connection,
-                           const char *url, const char *method,
-                           const char *version, const char *upload_data,
-                           size_t *upload_data_size, void **con_cls) {
-    struct MHD_Response *response;
+static int request_handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls) {
+
+  struct MHD_Response *response;
     int ret;
-	printf("Running check");
+    // Handle GET Request /get_public_key
     if (strcmp(url, "/get_public_key") == 0 && strcmp(method, "GET") == 0) {
       	printf(": GET-Request: %s\n", url);
         response = MHD_create_response_from_buffer(PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES,
@@ -39,6 +37,7 @@ static int request_handler(void *cls, struct MHD_Connection *connection,
         return ret;
     }
 
+    //Handle POST Request /send_encrypted_data
     if (strcmp(url, "/send_encrypted_data") == 0 && strcmp(method, "POST") == 0) {
       	printf(": POST-Request: %s\n", url);
         if (*upload_data_size > 0) {
@@ -73,6 +72,7 @@ static int request_handler(void *cls, struct MHD_Connection *connection,
             memcpy(iv, iv_json->valuestring, 16);
             memcpy(encrypted_data, encrypted_data_json->valuestring, sizeof(encrypted_data));
 
+            // 1. Decapsulation des Ciphertexts
             clock_t start_decap = clock();
             if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_dec(shared_secret, ciphertext, global_secret_key) != 0) {
                 response = create_response("{\"error\": \"Decapsulation failed\"}");
@@ -83,9 +83,13 @@ static int request_handler(void *cls, struct MHD_Connection *connection,
             }
             clock_t end_decap = clock();
 
+            // 2. Hashing des Shared Secrets in den AES Key
             SHA256(shared_secret, sizeof(shared_secret), aes_key);
+
+            // 3. Decrypt AES256 Der encrypted data
             int decrypted_data_len = aes_decrypt(encrypted_data, sizeof(encrypted_data), aes_key, iv, decrypted_data);
 
+            // 4. Antworten mit Received und decapsulation time
             char response_msg[256];
             snprintf(response_msg, sizeof(response_msg), "{\"status\": \"Received\", \"decapsulation_time\": \"%f\", \"decrypted_data\": \"%.100s\"}",
                      (double)(end_decap - start_decap) / CLOCKS_PER_SEC, decrypted_data);
@@ -126,11 +130,13 @@ int printIpAddress(){
 }
 
 int main() {
+  // 1. assymmetrische Keypair generation
     if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_keypair(global_public_key, global_secret_key) != 0) {
         fprintf(stderr, "Failed to generate Kyber key pair.\n");
         return 1;
     }
 
+    // 2. Start Daemon HTTP Server
     struct MHD_Daemon *daemon;
     daemon = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, PORT, NULL, NULL,
                               &request_handler, NULL, MHD_OPTION_END);
