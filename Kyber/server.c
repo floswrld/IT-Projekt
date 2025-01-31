@@ -118,7 +118,7 @@ int main() {
         fprintf(stderr, "Failed to start HTTP server\n");
         return 1;
     }
-	printf("Server is running on ip adress: ");
+	printf("Server is running on the ip adress above ");
     system("ifconfig | grep 'inet ' | grep -m 1 -Po '192\\.(?!255\\b)\\d{1,3}\\.(?!255\\b)\\d{1,3}\\.(?!255\\b)\\d{1,3}'");
     printf("and Port %d\n", PORT);
 
