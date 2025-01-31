@@ -59,6 +59,29 @@ void send_post_request(const char *url, const char *post_data, struct MemoryStru
     curl_easy_cleanup(curl);
 }
 
+void send_get_request(const char *url, struct MemoryStruct *response) {
+    CURL *curl = curl_easy_init();
+    if (!curl) {
+        fprintf(stderr, "Failed to initialize curl\n");
+        return;
+    }
+
+    response->memory = malloc(1);  // initial allocation
+    response->size = 0;
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)response);
+
+    CURLcode res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    }
+
+    curl_easy_cleanup(curl);
+}
+
 int aes_encrypt(unsigned char *plaintext, size_t plaintext_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext) {
     return plaintext_len;
 }
@@ -101,7 +124,7 @@ int main() {
         struct MemoryStruct response;
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/get_public_key");
         printf("%s", buffer);
-        send_post_request(buffer, "", &response);
+        send_get_request(buffer, "", &response);
 
         if (response.size == 0) {
             fprintf(log_file, "Failed to retrieve public key (iteration %d).\n", i + 1);
