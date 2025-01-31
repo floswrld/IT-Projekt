@@ -145,7 +145,6 @@ int main() {
       // 1. Public Key Request
         struct MemoryStruct response;
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/get_public_key");
-        printf("%s\n", buffer);
         send_get_request(buffer, &response);
         if (response.size == 0) {
             fprintf(log_file, "Failed to retrieve public key (iteration %d).\n", i + 1);
@@ -185,7 +184,6 @@ int main() {
         sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", ciphertext, iv, encrypted_data);
 
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
-        printf("%s", buffer);
         send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
         free(response.memory);
