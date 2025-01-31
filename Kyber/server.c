@@ -31,7 +31,7 @@ static int request_handler(void *cls, struct MHD_Connection *connection,
     int ret;
 	printf("Running check");
     if (strcmp(url, "/get_public_key") == 0 && strcmp(method, "GET") == 0) {
-      	printf("called get_public_key: %s\n", url);
+      	printf(": GET-Request: /get_public_key: %s\n", url);
         response = MHD_create_response_from_buffer(PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES,
                                                    global_public_key, MHD_RESPMEM_PERSISTENT);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
@@ -104,6 +104,27 @@ static int request_handler(void *cls, struct MHD_Connection *connection,
     return ret;
 }
 
+int printIpAddress(){
+  FILE *fp;
+    char ip[64] = {0};
+    fp = popen("ifconfig | grep 'inet ' | grep -m 1 -Po '192\\.(?!255\\b)\\d{1,3}\\.(?!255\\b)\\d{1,3}\\.(?!255\\b)\\d{1,3}'", "r");
+    if (fp == NULL) {
+        perror("popen failed");
+        return EXIT_FAILURE;
+    }
+
+    if (fgets(ip, sizeof(ip), fp) != NULL) {
+        ip[strcspn(ip, "\n")] = '\0';
+    } else {
+        fprintf(stderr, "Keine IP-Adresse gefunden.\n");
+        pclose(fp);
+        return EXIT_FAILURE;
+    }
+    pclose(fp);
+    printf("Server is running on %s:%d\n", ip, PORT);
+    return EXIT_SUCCESS;
+}
+
 int main() {
     if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_keypair(global_public_key, global_secret_key) != 0) {
         fprintf(stderr, "Failed to generate Kyber key pair.\n");
@@ -124,7 +145,7 @@ int main() {
 
      char input[128];
     while (1) {
-        printf("Geben Sie 'stop' ein, um den Server zu beenden: ");
+        printf("Geben Sie 'stop' ein, um den Server zu beenden:\n");
         if (fgets(input, sizeof(input), stdin) == NULL) {
             break;
         }
@@ -141,6 +162,6 @@ int main() {
     }
 
     MHD_stop_daemon(daemon);
-    printf("Stopped Server");
+    printf("Stopped Server\n");
     return 0;
 }
