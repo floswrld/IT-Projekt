@@ -11,6 +11,8 @@
 #define ITERATIONS 1000
 #define CSV_FILE "client_timings.csv"
 #define LOG_FILE "client_log.txt"
+#define BUFFER_SIZE 256
+
 char API_BASE_URL[256] = "http://";
 
 struct MemoryStruct {
@@ -63,6 +65,7 @@ int aes_encrypt(unsigned char *plaintext, size_t plaintext_len, unsigned char *k
 
 int main() {
     char input[64];
+    char buffer[BUFFER_SIZE];
     int a, b, c, d, port;
     int valid = 0;
 
@@ -96,8 +99,8 @@ int main() {
 
     for (int i = 0; i < ITERATIONS; i++) {
         struct MemoryStruct response;
-        printf("%s\n", strcat(API_BASE_URL, "/get_public_key"));
-        send_post_request(strcat(API_BASE_URL, "/get_public_key"), "", &response);
+        snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/get_public_key");
+        send_post_request(buffer, "", &response);
 
         if (response.size == 0) {
             fprintf(log_file, "Failed to retrieve public key (iteration %d).\n", i + 1);
@@ -136,7 +139,8 @@ int main() {
         sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }",
                 ciphertext, iv, encrypted_data);
 
-        send_post_request(strcat(API_BASE_URL, "/send_encrypted_data"), post_data, &response);
+        snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
+        send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
         free(response.memory);
     }
