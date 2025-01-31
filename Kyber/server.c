@@ -31,7 +31,7 @@ static int request_handler(void *cls, struct MHD_Connection *connection,
     int ret;
 	printf("Running check");
     if (strcmp(url, "/get_public_key") == 0 && strcmp(method, "GET") == 0) {
-      	printf(": GET-Request: /get_public_key: %s\n", url);
+      	printf(": GET-Request: %s\n", url);
         response = MHD_create_response_from_buffer(PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES,
                                                    global_public_key, MHD_RESPMEM_PERSISTENT);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
@@ -40,7 +40,7 @@ static int request_handler(void *cls, struct MHD_Connection *connection,
     }
 
     if (strcmp(url, "/send_encrypted_data") == 0 && strcmp(method, "POST") == 0) {
-      printf("called send_encrypted_data: %s\n", url);
+      	printf(": POST-Request: %s\n", url);
         if (*upload_data_size > 0) {
             cJSON *json = cJSON_Parse(upload_data);
             if (!json) {
