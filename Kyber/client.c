@@ -8,10 +8,10 @@
 #include <time.h>
 #include "../include/kyber_utils/api.h"
 
-#define API_BASE_URL "http://127.0.0.1:8080"
 #define ITERATIONS 1000
 #define CSV_FILE "client_timings.csv"
 #define LOG_FILE "client_log.txt"
+char API_BASE_URL[256] = "http://";
 
 struct MemoryStruct {
     char *memory;
@@ -62,6 +62,28 @@ int aes_encrypt(unsigned char *plaintext, size_t plaintext_len, unsigned char *k
 }
 
 int main() {
+    char input[64];
+    int a, b, c, d, port;
+    int valid = 0;
+
+    while (!valid) {
+        printf("Bitte geben Sie die Adresse im Format <IP:Port> ein (z.B. 127.0.0.1:8080): ");
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            continue;
+        }
+        input[strcspn(input, "\n")] = '\0';
+        if (sscanf(input, "%d.%d.%d.%d:%d", &a, &b, &c, &d, &port) == 5) {
+            if (a >= 0 && a <= 255 && b >= 0 && b <= 255 &&
+                c >= 0 && c <= 255 && d >= 0 && d <= 255 && port > 0 && port <= 65535) {
+                valid = 1;
+                }
+        }
+        if (!valid) {
+            printf("Eingabe ist nicht korrekt formatiert. Bitte versuchen Sie es erneut.\n");
+        }
+    }
+    strcat(API_BASE_URL, input);
+
     FILE *csv_file = fopen(CSV_FILE, "w");
     FILE *log_file = fopen(LOG_FILE, "w");
 
