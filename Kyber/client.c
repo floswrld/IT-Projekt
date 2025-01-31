@@ -123,7 +123,7 @@ int main() {
     for (int i = 0; i < ITERATIONS; i++) {
         struct MemoryStruct response;
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/get_public_key");
-        printf("%s", buffer);
+        printf("%s\n", buffer);
         send_get_request(buffer, "", &response);
 
         if (response.size == 0) {
