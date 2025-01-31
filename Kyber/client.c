@@ -14,6 +14,8 @@
 #define LOG_FILE "client_log.txt"
 #define BUFFER_SIZE 256
 
+#define UNUSED(x) (void)(x)
+
 char API_BASE_URL[256] = "http://";
 
 struct MemoryStruct {
@@ -84,6 +86,11 @@ void send_get_request(const char *url, struct MemoryStruct *response) {
 }
 
 int aes_encrypt(char *plaintext, size_t plaintext_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext) {
+  UNUSED(plaintext);
+  UNUSED(plaintext_len);
+  UNUSED(key);
+  UNUSED(iv);
+  UNUSED(ciphertext);
     return plaintext_len;
 }
 
@@ -178,6 +185,7 @@ int main() {
         unsigned char encrypted_data[4096];
         // response.memory = plaintext
         int encrypted_data_len = aes_encrypt(chunk.memory, chunk.size, aes_key, iv, encrypted_data);
+        UNUSED(encrypted_data_len);
 
         // 5. Send ciphertext and encrypted data to server
         char post_data[8192];

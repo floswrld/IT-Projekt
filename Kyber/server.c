@@ -12,6 +12,8 @@
 #define PORT 8080
 #define MAX_POST_SIZE 8192
 
+#define UNUSED(x) (void)(x)
+
 uint8_t global_secret_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_SECRETKEYBYTES];
 uint8_t global_public_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES];
 
@@ -20,6 +22,11 @@ struct MHD_Response *create_response(const char *message) {
 }
 
 int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
+  	UNUSED(ciphertext);
+    UNUSED(ciphertext_len);
+    UNUSED(key);
+    UNUSED(iv);
+    UNUSED(plaintext);
     return ciphertext_len;
 }
 
@@ -86,6 +93,7 @@ static int request_handler(void *cls, struct MHD_Connection *connection, const c
 
             // 3. Decrypt AES256 Der encrypted data
             int decrypted_data_len = aes_decrypt(encrypted_data, sizeof(encrypted_data), aes_key, iv, decrypted_data);
+            UNUSED(decrypted_data_len);
 
             // 4. Antworten mit Received und decapsulation time
             char response_msg[256];
