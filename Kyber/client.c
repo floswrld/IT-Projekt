@@ -159,7 +159,7 @@ int main() {
             continue;
         }
         uint8_t public_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES];
-        printf("%s\n", response.memory);
+        printf("Public Key: %s\n", response.memory);
         memcpy(public_key, response.memory, PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES);
         free(response.memory);
 
