@@ -96,6 +96,7 @@ int main() {
 
     for (int i = 0; i < ITERATIONS; i++) {
         struct MemoryStruct response;
+        printf("%s", strcat(API_BASE_URL, "/get_public_key"));
         send_post_request(strcat(API_BASE_URL, "/get_public_key"), "", &response);
 
         if (response.size == 0) {
