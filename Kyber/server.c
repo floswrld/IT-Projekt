@@ -5,6 +5,7 @@
 #include <microhttpd.h>
 #include <openssl/sha.h>
 #include <time.h>
+#include <ctype.h>
 #include "../include/kyber_utils/api.h"
 #include "../include/kyber_utils/cJSON.h"
 
@@ -119,7 +120,23 @@ int main() {
     }
 
     printf("Server running on port %d...\n", PORT);
-    getchar();
+     char input[128];
+    while (1) {
+        printf("Geben Sie 'stop' ein, um den Server zu beenden: ");
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            break;
+        }
+
+        input[strcspn(input, "\r\n")] = '\0';
+
+        for (int i = 0; input[i]; i++) {
+            input[i] = tolower((unsigned char)input[i]);
+        }
+
+        if (strcmp(input, "stop") == 0) {
+            break;
+        }
+    }
 
     MHD_stop_daemon(daemon);
     printf("Stopped Server");
