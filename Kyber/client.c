@@ -124,7 +124,7 @@ int main() {
         struct MemoryStruct response;
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/get_public_key");
         printf("%s\n", buffer);
-        send_get_request(buffer, "", &response);
+        send_get_request(buffer, &response);
 
         if (response.size == 0) {
             fprintf(log_file, "Failed to retrieve public key (iteration %d).\n", i + 1);
