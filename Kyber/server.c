@@ -118,8 +118,10 @@ int main() {
         fprintf(stderr, "Failed to start HTTP server\n");
         return 1;
     }
+	printf("Server is running on ip adress: ");
+    system("ifconfig | grep 'inet ' | grep -m 1 -Po '192\\.(?!255\\b)\\d{1,3}\\.(?!255\\b)\\d{1,3}\\.(?!255\\b)\\d{1,3}'");
+    printf("and Port %d\n", PORT);
 
-    printf("Server running on port %d...\n", PORT);
      char input[128];
     while (1) {
         printf("Geben Sie 'stop' ein, um den Server zu beenden: ");
