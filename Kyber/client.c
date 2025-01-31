@@ -98,7 +98,7 @@ int main() {
         struct MemoryStruct response;
 
         // 1. Anfrage nach Public Key vom Server
-        send_post_request(API_BASE_URL "/get_public_key", "", &response);
+        send_post_request(strcat(API_BASE_URL, "/get_public_key"), "", &response);
 
         if (response.size == 0) {
             fprintf(log_file, "Failed to retrieve public key (iteration %d).\n", i + 1);
@@ -136,7 +136,7 @@ int main() {
         sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }",
                 ciphertext, iv, encrypted_data);
 
-        send_post_request(API_BASE_URL "/send_encrypted_data", post_data, &response);
+        send_post_request(strcat(API_BASE_URL, "/send_encrypted_data"), post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
         free(response.memory);
     }
