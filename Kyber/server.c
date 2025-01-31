@@ -122,5 +122,6 @@ int main() {
     getchar();
 
     MHD_stop_daemon(daemon);
+    printf("Stopped Server");
     return 0;
 }
