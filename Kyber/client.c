@@ -10,7 +10,7 @@
 #include <time.h>
 #include "../include/kyber_utils/api.h"
 
-#define ITERATIONS 10
+#define ITERATIONS 1
 #define URL "https://ogcapi.hft-stuttgart.de/sta/icity_data_security/v1.1"
 #define CSV_FILE "client_timings.csv"
 #define LOG_FILE "client_log.txt"
@@ -279,10 +279,11 @@ int main() {
 
         // 6. Send ciphertext and encrypted data to server
         char post_data[8192];
-        sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", b64_ciphertext, b64_iv, b64_encrypted_data);
+        //sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", b64_ciphertext, b64_iv, b64_encrypted_data);
+        sprintf(post_data, "{ \"ciphertext\": \"test123\", \"iv\": \"wudhiw\", \"data\": \"efefefefef\" }");
         printf("Post Data: \n%s\n", post_data);
 
-        snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
+        snprintf(buffer, BUFFER_SIZE, "%s", "https://webhook.site/e4befafa-3abc-4a81-b567-1422fa0ebe74");
         send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
         printf("Server response (iteration %d): %s\n", i + 1, response.memory);
