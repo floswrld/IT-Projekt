@@ -253,25 +253,22 @@ int main() {
 
         printf("Ciphertext: ");
         for (int i = 0; i < PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES; i++) {
-            // %02x gibt den Wert als zweistellige Hexadezimalzahl aus (mit führender Null, falls nötig)
-            printf("%02x ", ciphertext[i]);
+            printf("%02x", ciphertext[i]);
         }
         printf("\n");
         printf("IV: ");
         for (int i = 0; i < sizeof(iv); i++) {
-            // %02x sorgt dafür, dass jedes Byte als zweistellige Hexadezimalzahl ausgegeben wird.
-            printf("%02x ", iv[i]);
+            printf("%02x", iv[i]);
         }
         printf("\n");
         printf("Encrypted Data: ");
-        for (int i = 0; i < sizeof(encrypted_data); i++) {
-            // %02x sorgt dafür, dass jedes Byte als zweistellige Hexadezimalzahl ausgegeben wird.
-            printf("%02x ", encrypted_data[i]);
+        for (int i = 0; i < encrypted_data_len; i++) {
+            printf("%02x", encrypted_data[i]);
         }
         printf("\n");
         unsigned char *ba64_ciphertext = base64_encode(ciphertext, sizeof(ciphertext));
         unsigned char *ba64_iv = base64_encode(iv, sizeof(iv));
-        unsigned char *ba64_encrypted_data = base64_encode(encrypted_data, sizeof(encrypted_data));
+        unsigned char *ba64_encrypted_data = base64_encode(encrypted_data, encrypted_data_len);
         printf("Base64 Ciphertext: \n%s\n", ba64_ciphertext);
         printf("Base64 IV: \n%s\n", ba64_iv);
         printf("Base64 Encrypted Data: \n%s\n", ba64_encrypted_data);
