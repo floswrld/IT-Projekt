@@ -185,11 +185,12 @@ int main() {
         return 1;
     }
 
-    fprintf(csv_file, "Iteration,Encapsulation Time (seconds)\n");
+    fprintf(csv_file, "Iteration,Encapsulation Time (seconds),AES256 Encryption Time (seconds)\n");
 
     for (int i = 0; i < ITERATIONS; i++) {
       // 1. Public Key Request
         struct MemoryStruct response;
+        struct timespec start_encap, end_encap, start_encrypt, end_encrypt;
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/get_public_key");
         send_get_request(buffer, &response);
         if (response.size == 0) {
@@ -206,12 +207,10 @@ int main() {
         uint8_t ciphertext[PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES];
         uint8_t shared_secret[PQCLEAN_KYBER1024_CLEAN_CRYPTO_BYTES];
 
-        clock_t start_encap = clock();
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_encap);
         PQCLEAN_KYBER1024_CLEAN_crypto_kem_enc(ciphertext, shared_secret, public_key);
-        clock_t end_encap = clock();
-
-        double encap_time = (double)(end_encap - start_encap) / CLOCKS_PER_SEC;
-        fprintf(csv_file, "%d,%f\n", i + 1, encap_time);
+        clock_gettime(CLOCK_MONOTONIC_RAW, &end_encap);
+        uint64_t encap_time = (end_encap.tv_sec - start_encap.tv_sec) * 1000000 + (end_encap.tv_nsec - start_encap.tv_nsec) / 1000;
 
         // 3. AES Key ableiten
         unsigned char aes_key[32];
@@ -219,17 +218,16 @@ int main() {
         unsigned char iv[16];
         RAND_bytes(iv, sizeof(iv));
 
-        printf("Erzeugter IV: ");
-        for (size_t i = 0; i < sizeof(iv); i++) {
-            printf("%02x", iv[i]);
-        }
-        printf("\n");
-
         // 4. Daten verschlüsseln (Placeholder)
         unsigned char encrypted_data[4096];
         // response.memory = plaintext
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_encrypt);
         int encrypted_data_len = aes_encrypt(chunk.memory, chunk.size, aes_key, iv, encrypted_data);
         UNUSED(encrypted_data_len);
+        clock_gettime(CLOCK_MONOTONIC_RAW, &end_encrypt);
+        uint64_t encrypt_time = (end_encrypt.tv_sec - start_encrypt.tv_sec) * 1000000 + (end_encrypt.tv_nsec - start_enrypt.tv_nsec) / 1000;
+
+        fprintf(csv_file, "%d,%llu,%llu\n", i + 1, encap_time, encrypt_time);
 
         // 5. Base64-Kodierung der Binärdaten
         char *b64_ciphertext   = base64_encode(ciphertext, PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES);
