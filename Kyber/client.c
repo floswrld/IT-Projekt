@@ -277,12 +277,8 @@ int main() {
         printf("Server response (iteration %d): %s\n", i + 1, response.memory);
 
         // Speicher freigeben
-        free(b64_ciphertext);
-        free(b64_iv);
-        free(b64_encrypted_data);
         free(response.memory);
     }
-
     fclose(csv_file);
     fclose(log_file);
     return 0;
