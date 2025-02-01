@@ -117,6 +117,8 @@ static int request_handler(void *cls,
 
             con_info->data[con_info->size] = '\0';
 
+            printf("Received JSON while collecting: %s\n", con_info->data);
+
             *upload_data_size = 0;
             return MHD_YES;
         }
