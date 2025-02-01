@@ -108,6 +108,8 @@ static int request_handler(void *cls,
                            const char *upload_data,
                            size_t *upload_data_size,
                            void **con_cls) {
+    UNUSED(cls);
+    UNUSED(version);
     struct MHD_Response *response;
     int ret;
 
