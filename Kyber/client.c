@@ -281,8 +281,8 @@ int main() {
         char post_data[8192];
         sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", b64_ciphertext, b64_iv, b64_encrypted_data);
         printf("Post Data: \n");
-        for (int i = 0; i < encrypted_data_len; i++) {
-            printf("%02x ", encrypted_data[i]);
+        for (int i = 0; i < sizeof(post_data); i++) {
+            printf("%02x ", post_data[i]);
         }
         printf("\n");
 
