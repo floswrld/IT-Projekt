@@ -86,8 +86,7 @@ static int request_handler(void *cls,
         if (con_info == NULL) {
             return MHD_NO;
         }
-        /* Speicher für einen leeren String reservieren */
-        con_info->data = malloc(1);
+        con_info->data = malloc(1);  // Initial leerer Puffer
         if (con_info->data == NULL) {
             free(con_info);
             return MHD_NO;
@@ -110,122 +109,86 @@ static int request_handler(void *cls,
     //Handle POST Request /send_encrypted_data
     if (strcmp(url, "/send_encrypted_data") == 0 && strcmp(method, "POST") == 0) {
 
-        // Sammeln dens Request-Body über mehrere Aufrufe hinweg
-        if (*upload_data_size > 0) {
-            char *new_data = realloc(con_info->data, con_info->size + *upload_data_size + 1);
+      /* --- Schritt 1: Sammeln des POST-Bodys --- */
+        if (*upload_data_size != 0) {
+            // Vergrößere den Puffer, um die neuen Daten anzuhängen
+            size_t new_size = con_info->size + *upload_data_size;
+            char *new_data = realloc(con_info->data, new_size + 1);
             if (new_data == NULL) {
                 return MHD_NO;
             }
             con_info->data = new_data;
-
             memcpy(con_info->data + con_info->size, upload_data, *upload_data_size);
-            con_info->size += *upload_data_size;
-
+            con_info->size = new_size;
             con_info->data[con_info->size] = '\0';
-
-            printf("Received JSON while collecting: %s\n", con_info->data);
-
-            *upload_data_size = 0;
-            return MHD_YES;
+            *upload_data_size = 0; // Wurde verarbeitet, also auf 0 setzen
+            return MHD_YES; // Weitere Aufrufe kommen noch
         }
-        /* Wenn *upload_data_size == 0, ist der komplette Body empfangen.
-           -> verarbeite den gesamten Body, der in con_info->data steht. */
-        else {
-              if (con_info->data == NULL) {
-                /* Sollte nicht mehr der Fall sein, da wir con_info->data initialisiert haben */
-                con_info->data = strdup("");
-                con_info->size = 0;
-            }
-            cJSON *json = cJSON_Parse(con_info->data);
-            printf("Received JSON: %s\n", con_info->data);
-            if (!json) {
-                response = create_response("{\"error\": \"Invalid JSON\"}");
-                ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);
-                MHD_destroy_response(response);
-                free(con_info->data);
-                free(con_info);
-                *con_cls = NULL;
-                return ret;
-            }
+        /* --- Schritt 2: Alle Daten wurden empfangen ---
+                  Jetzt kann der komplette Body verarbeitet werden. --- */
 
-            cJSON *ciphertext_json = cJSON_GetObjectItem(json, "ciphertext");
-            cJSON *iv_json = cJSON_GetObjectItem(json, "iv");
-            cJSON *encrypted_data_json = cJSON_GetObjectItem(json, "data");
-
-            if (!cJSON_IsString(ciphertext_json) ||
-                !cJSON_IsString(iv_json) ||
-                !cJSON_IsString(encrypted_data_json)) {
-                cJSON_Delete(json);
-                response = create_response("{\"error\": \"Missing data\"}");
-                ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);
-                MHD_destroy_response(response);
-                free(con_info->data);
-                free(con_info);
-                *con_cls = NULL;
-                return ret;
-            }
-
-            int ciphertext_len = 0, iv_len = 0, encrypted_data_len = 0;
-            unsigned char *decoded_ciphertext = base64_decode(ciphertext_json->valuestring, &ciphertext_len);
-            unsigned char *decoded_iv         = base64_decode(iv_json->valuestring, &iv_len);
-            unsigned char *decoded_encrypted_data = base64_decode(encrypted_data_json->valuestring, &encrypted_data_len);
-
-            if (!decoded_ciphertext ||
-                ciphertext_len != PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES ||
-                !decoded_iv || iv_len != 16 ||
-                !decoded_encrypted_data) {
-                cJSON_Delete(json);
-                free(decoded_ciphertext);
-                free(decoded_iv);
-                free(decoded_encrypted_data);
-                response = create_response("{\"error\": \"Invalid base64 data\"}");
-                ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);
-                MHD_destroy_response(response);
-                free(con_info->data);
-                free(con_info);
-                *con_cls = NULL;
-                return ret;
-            }
-
-            uint8_t shared_secret[PQCLEAN_KYBER1024_CLEAN_CRYPTO_BYTES];
-            unsigned char aes_key[32];
-            unsigned char decrypted_data[4096];
-
-            // 1. Decapsulation des Ciphertexts
-            clock_t start_decap = clock();
-            if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_dec(shared_secret, decoded_ciphertext, global_secret_key) != 0) {
-                response = create_response("{\"error\": \"Decapsulation failed\"}");
-                ret = MHD_queue_response(connection, MHD_HTTP_INTERNAL_SERVER_ERROR, response);
-                MHD_destroy_response(response);
-                cJSON_Delete(json);
-                free(decoded_ciphertext);
-                free(decoded_iv);
-                free(decoded_encrypted_data);
-                free(con_info->data);
-                free(con_info);
-                *con_cls = NULL;
-                return ret;
-            }
-            clock_t end_decap = clock();
-
-            // 2. Hashing des Shared Secrets in den AES Key
-            SHA256(shared_secret, sizeof(shared_secret), aes_key);
-
-            // 3. Decrypt AES256 der encrypted data
-            int decrypted_data_len = aes_decrypt(decoded_encrypted_data, encrypted_data_len, aes_key, decoded_iv, decrypted_data);
-            UNUSED(decrypted_data_len);
-
-            // 4. Antworten mit Received und decapsulation time
-            char response_msg[256];
-            snprintf(response_msg, sizeof(response_msg),
-                     "{\"status\": \"Received\", \"decapsulation_time\": \"%f\", \"decrypted_data\": \"%.100s\"}",
-                     (double)(end_decap - start_decap) / CLOCKS_PER_SEC, decrypted_data);
-
-            response = create_response(response_msg);
-            ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+        // Mit cJSON den JSON-String parsen
+        cJSON *json = cJSON_Parse(con_info->data);
+        if (json == NULL) {
+            response = create_response("{\"error\": \"Invalid JSON\"}");
+            ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);
             MHD_destroy_response(response);
+            free(con_info->data);
+            free(con_info);
+            *con_cls = NULL;
+            return ret;
+        }
+            // HIER SOLL DER POST BODY AUSGELESEN UND ALS JSON VERARBEITET WERDEN
 
-            /* Aufräumen */
+        cJSON *ciphertext_json = cJSON_GetObjectItem(json, "ciphertext");
+        cJSON *iv_json = cJSON_GetObjectItem(json, "iv");
+        cJSON *encrypted_data_json = cJSON_GetObjectItem(json, "data");
+
+        if (!cJSON_IsString(ciphertext_json) ||
+            !cJSON_IsString(iv_json) ||
+            !cJSON_IsString(encrypted_data_json)) {
+            cJSON_Delete(json);
+            response = create_response("{\"error\": \"Missing data\"}");
+            ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);
+            MHD_destroy_response(response);
+            free(con_info->data);
+            free(con_info);
+            *con_cls = NULL;
+            return ret;
+        }
+
+        int ciphertext_len = 0, iv_len = 0, encrypted_data_len = 0;
+        unsigned char *decoded_ciphertext = base64_decode(ciphertext_json->valuestring, &ciphertext_len);
+        unsigned char *decoded_iv         = base64_decode(iv_json->valuestring, &iv_len);
+        unsigned char *decoded_encrypted_data = base64_decode(encrypted_data_json->valuestring, &encrypted_data_len);
+
+        if (!decoded_ciphertext ||
+            ciphertext_len != PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES ||
+            !decoded_iv || iv_len != 16 ||
+            !decoded_encrypted_data) {
+            cJSON_Delete(json);
+            free(decoded_ciphertext);
+            free(decoded_iv);
+            free(decoded_encrypted_data);
+            response = create_response("{\"error\": \"Invalid base64 data\"}");
+            ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);
+            MHD_destroy_response(response);
+            free(con_info->data);
+            free(con_info);
+            *con_cls = NULL;
+            return ret;
+        }
+
+        uint8_t shared_secret[PQCLEAN_KYBER1024_CLEAN_CRYPTO_BYTES];
+        unsigned char aes_key[32];
+        unsigned char decrypted_data[4096];
+
+        // 1. Decapsulation des Ciphertexts
+        clock_t start_decap = clock();
+        if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_dec(shared_secret, decoded_ciphertext, global_secret_key) != 0) {
+            response = create_response("{\"error\": \"Decapsulation failed\"}");
+            ret = MHD_queue_response(connection, MHD_HTTP_INTERNAL_SERVER_ERROR, response);
+            MHD_destroy_response(response);
             cJSON_Delete(json);
             free(decoded_ciphertext);
             free(decoded_iv);
@@ -235,6 +198,34 @@ static int request_handler(void *cls,
             *con_cls = NULL;
             return ret;
         }
+        clock_t end_decap = clock();
+
+        // 2. Hashing des Shared Secrets in den AES Key
+        SHA256(shared_secret, sizeof(shared_secret), aes_key);
+
+        // 3. Decrypt AES256 der encrypted data
+        int decrypted_data_len = aes_decrypt(decoded_encrypted_data, encrypted_data_len, aes_key, decoded_iv, decrypted_data);
+        UNUSED(decrypted_data_len);
+
+        // 4. Antworten mit Received und decapsulation time
+        char response_msg[256];
+        snprintf(response_msg, sizeof(response_msg),
+                 "{\"status\": \"Received\", \"decapsulation_time\": \"%f\", \"decrypted_data\": \"%.100s\"}",
+                 (double)(end_decap - start_decap) / CLOCKS_PER_SEC, decrypted_data);
+
+        response = create_response(response_msg);
+        ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+        MHD_destroy_response(response);
+
+        /* Aufräumen */
+        cJSON_Delete(json);
+        free(decoded_ciphertext);
+        free(decoded_iv);
+        free(decoded_encrypted_data);
+        free(con_info->data);
+        free(con_info);
+        *con_cls = NULL;
+        return ret;
     }
 
     response = create_response("{\"error\": \"Not found\"}");
