@@ -231,6 +231,24 @@ static int request_handler(void *cls,
         unsigned char *decoded_ciphertext = base64_decode(ciphertext_json->valuestring, &ciphertext_len);
         unsigned char *decoded_iv = base64_decode(iv_json->valuestring, &iv_len);
         unsigned char *decoded_encrypted_data = base64_decode(encrypted_data_json->valuestring, &encrypted_data_len);
+        printf("Ciphertext: ");
+        for (int i = 0; i < PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES; i++) {
+            // %02x gibt den Wert als zweistellige Hexadezimalzahl aus (mit führender Null, falls nötig)
+            printf("%02x ", decoded_ciphertext[i]);
+        }
+        printf("\n");
+        printf("IV: ");
+        for (int i = 0; i < sizeof(decoded_iv); i++) {
+            // %02x sorgt dafür, dass jedes Byte als zweistellige Hexadezimalzahl ausgegeben wird.
+            printf("%02x ", decoded_iv[i]);
+        }
+        printf("\n");
+        printf("Encrypted Data: ");
+        for (int i = 0; i < sizeof(decoded_encrypted_data); i++) {
+            // %02x sorgt dafür, dass jedes Byte als zweistellige Hexadezimalzahl ausgegeben wird.
+            printf("%02x ", decoded_encrypted_data[i]);
+        }
+        printf("\n");
 
         if (!decoded_ciphertext ||
                     ciphertext_len != PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES ||
