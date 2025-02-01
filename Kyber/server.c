@@ -109,37 +109,36 @@ static int request_handler(void *cls,
     //Handle POST Request /send_encrypted_data
     if (strcmp(url, "/send_encrypted_data") == 0 && strcmp(method, "POST") == 0) {
 
-      /* --- Schritt 1: Sammeln des POST-Bodys --- */
-        if (*upload_data_size != 0) {
+        /* --- Schritt 1: Sammeln des POST-Bodys --- */
+        if (upload_data_size != 0) {
             // Vergrößere den Puffer, um die neuen Daten anzuhängen
-            size_t new_size = con_info->size + *upload_data_size;
-            char *new_data = realloc(con_info->data, new_size + 1);
+            size_t new_size = con_info->size + upload_data_size;
+            charnew_data = realloc(con_info->data, new_size + 1);
             if (new_data == NULL) {
                 return MHD_NO;
             }
             con_info->data = new_data;
             memcpy(con_info->data + con_info->size, upload_data, *upload_data_size);
-            *upload_data_size = 0; // Wurde verarbeitet, also auf 0 setzen
-            return MHD_YES; // Weitere Aufrufe kommen noch
+            con_info->size = new_size;  // Puffergröße aktualisieren
+            upload_data_size = 0;       // Daten wurden verarbeitet
+            return MHD_YES;              // Warten auf den finalen Aufruf
         }
+
         /* --- Schritt 2: Alle Daten wurden empfangen ---
                   Jetzt kann der komplette Body verarbeitet werden. --- */
 
-        // Mit cJSON den JSON-String parsen
-        size_t new_size = con_info->size + *upload_data_size;
-        char *new_data = realloc(con_info->data, new_size + 1);
+        // Sicherstellen, dass der Buffer korrekt terminiert ist:
+        charnew_data = realloc(con_info->data, con_info->size + 1);
         if (new_data == NULL) {
             return MHD_NO;
         }
         con_info->data = new_data;
-        memcpy(con_info->data + con_info->size, upload_data, *upload_data_size);
-        con_info->size = new_size;
         con_info->data[con_info->size] = '\0';
 
         printf("Empfangene Daten: \n%s\n", con_info->data);
         cJSON *json = cJSON_Parse(con_info->data);
         if (json == NULL) {
-            response = create_response("{\"error\": \"Invalid JSON\"}");
+            response = create_response("{"error": "Invalid JSON"}");
             ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);
             MHD_destroy_response(response);
             free(con_info->data);
