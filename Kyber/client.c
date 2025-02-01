@@ -129,24 +129,18 @@ int aes_encrypt(char *plaintext, size_t plaintext_len, unsigned char *key, unsig
 }
 
 char *base64_encode(const unsigned char *input, int length) {
-    /* Berechne die Länge des Base64-codierten Strings:
-     * Für jeden 3-Byte-Block gibt es 4 Zeichen; falls nicht exakt teilbar, wird mit Padding aufgefüllt.
-     */
     int out_len = 4 * ((length + 2) / 3);
 
-    /* Speicher für den codierten String plus Null-Terminator reservieren */
     char *encoded = malloc(out_len + 1);
     if (encoded == NULL)
         return NULL;
 
-    /* EVP_EncodeBlock schreibt genau 'out_len' Zeichen (und liefert die Anzahl der geschriebenen Zeichen zurück) */
     int written = EVP_EncodeBlock((unsigned char *)encoded, input, length);
     if (written < 0) {
         free(encoded);
         return NULL;
     }
 
-    /* Sicherstellen, dass der String nullterminiert ist */
     encoded[written] = '\0';
     return encoded;
 }
