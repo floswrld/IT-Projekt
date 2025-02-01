@@ -25,7 +25,7 @@ struct MHD_Response *create_response(const char *message) {
 struct connection_info_struct {
   char *data;
   size_t size;
-}
+};
 
 int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
   	UNUSED(ciphertext);
