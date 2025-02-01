@@ -253,6 +253,11 @@ int main() {
         clock_gettime(CLOCK_MONOTONIC_RAW, &start_encrypt);
         int encrypted_data_len = aes_encrypt(chunk.memory, chunk.size, aes_key, iv, encrypted_data);
         UNUSED(encrypted_data_len);
+        printf("Encrypted data (Hex):\n");
+        for (int i = 0; i < encrypted_data_len; i++) {
+            printf("%02x ", encrypted_data[i]);
+        }
+        printf("\n");
         clock_gettime(CLOCK_MONOTONIC_RAW, &end_encrypt);
         uint64_t encrypt_time = (end_encrypt.tv_sec - start_encrypt.tv_sec) * 1000000 + (end_encrypt.tv_nsec - start_encrypt.tv_nsec) / 1000;
 
