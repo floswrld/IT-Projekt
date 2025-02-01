@@ -119,8 +119,6 @@ static int request_handler(void *cls,
             }
             con_info->data = new_data;
             memcpy(con_info->data + con_info->size, upload_data, *upload_data_size);
-            con_info->size = new_size;
-            con_info->data[con_info->size] = '';
             *upload_data_size = 0; // Wurde verarbeitet, also auf 0 setzen
             return MHD_YES; // Weitere Aufrufe kommen noch
         }
