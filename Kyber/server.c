@@ -278,6 +278,7 @@ int printIpAddress() {
     pclose(fp);
     printf("Server is running on %s:%d\n", ip, PORT);
     return EXIT_SUCCESS;
+
 }
 
 int main() {
