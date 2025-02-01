@@ -120,7 +120,7 @@ static int request_handler(void *cls,
             con_info->data = new_data;
             memcpy(con_info->data + con_info->size, upload_data, *upload_data_size);
             con_info->size = new_size;
-            con_info->data[con_info->size] = '\0';
+            con_info->data[con_info->size] = '';
             *upload_data_size = 0; // Wurde verarbeitet, also auf 0 setzen
             return MHD_YES; // Weitere Aufrufe kommen noch
         }
@@ -128,6 +128,16 @@ static int request_handler(void *cls,
                   Jetzt kann der komplette Body verarbeitet werden. --- */
 
         // Mit cJSON den JSON-String parsen
+        size_t new_size = con_info->size + *upload_data_size;
+        char *new_data = realloc(con_info->data, new_size + 1);
+        if (new_data == NULL) {
+            return MHD_NO;
+        }
+        con_info->data = new_data;
+        memcpy(con_info->data + con_info->size, upload_data, *upload_data_size);
+        con_info->size = new_size;
+        con_info->data[con_info->size] = '\0';
+
         printf("Empfangene Daten: \n%s\n", con_info->data);
         cJSON *json = cJSON_Parse(con_info->data);
         if (json == NULL) {
