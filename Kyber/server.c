@@ -17,9 +17,13 @@ typedef int MHD_Result;
 #define PORT 8080
 #define MAX_POST_SIZE 8192
 #define UNUSED(x) (void)(x)
+#define CSV_FILE "client_timings.csv"
+#define LOG_FILE "client_log.txt"
 
 uint8_t global_secret_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_SECRETKEYBYTES];
 uint8_t global_public_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES];
+FILE *csv_file;
+FILE *log_file;
 
 struct MHD_Response *create_response(const char *message) {
     return MHD_create_response_from_buffer(strlen(message), (void *)message, MHD_RESPMEM_PERSISTENT);
@@ -48,12 +52,40 @@ char *base64_encode(const unsigned char *input, int length) {
 }
 
 int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
-    UNUSED(ciphertext);
-    UNUSED(ciphertext_len);
-    UNUSED(key);
-    UNUSED(iv);
-    UNUSED(plaintext);
-    return ciphertext_len;
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    if (!ctx) {
+        fprintf(stderr, "Fehler: EVP_CIPHER_CTX_new() schlug fehl.\n");
+        return -1;
+    }
+
+    int len;
+    int plaintext_len = 0;
+
+    // Initialisierung mit AES-256-CBC für die Entschlüsselung
+    if (1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv)) {
+        fprintf(stderr, "Fehler: EVP_DecryptInit_ex() schlug fehl.\n");
+        EVP_CIPHER_CTX_free(ctx);
+        return -1;
+    }
+
+    // Entschlüsselung der Daten
+    if (1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len)) {
+        fprintf(stderr, "Fehler: EVP_DecryptUpdate() schlug fehl.\n");
+        EVP_CIPHER_CTX_free(ctx);
+        return -1;
+    }
+    plaintext_len = len;
+
+    // Finalisieren der Entschlüsselung (Padding entfernen)
+    if (1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)) {
+        fprintf(stderr, "Fehler: EVP_DecryptFinal_ex() schlug fehl.\n");
+        EVP_CIPHER_CTX_free(ctx);
+        return -1;
+    }
+    plaintext_len += len;
+
+    EVP_CIPHER_CTX_free(ctx);
+    return plaintext_len;
 }
 
 /* Base64-Decodierung */
@@ -159,16 +191,16 @@ static int request_handler(void *cls,
         }
 
         int ciphertext_len = 0, iv_len = 0, encrypted_data_len = 0;
-        unsigned char *decoded_ciphertext = base64_decode(ciphertext_json->valuestring, &ciphertext_len);
-        unsigned char *decoded_iv         = base64_decode(iv_json->valuestring, &iv_len);
-        unsigned char *decoded_encrypted_data = base64_decode(encrypted_data_json->valuestring, &encrypted_data_len);
+        unsigned char *decoded_ciphertext = (unsigned char *)ciphertext_json->valuestring;
+        unsigned char *decoded_iv = (unsigned char *)iv_json->valuestring;
+        unsigned char *decoded_encrypted_data = (unsigned char *)encrypted_data_json->valuestring;
 
         if (!decoded_ciphertext ||
                     ciphertext_len != PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES ||
                     !decoded_iv || iv_len != 16 ||
                     !decoded_encrypted_data) {
             cJSON_Delete(json);
-            response = create_response("{\"error\": \"Invalid base64 data\"}");
+            response = create_response("{\"error\": \"Oops! Something went wrong.\"}");
             ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);
             MHD_destroy_response(response);
             free(con_info->data);
@@ -183,8 +215,9 @@ static int request_handler(void *cls,
         uint8_t shared_secret[PQCLEAN_KYBER1024_CLEAN_CRYPTO_BYTES];
         unsigned char aes_key[32];
         unsigned char decrypted_data[4096];
+        struct timespec start_encap, end_encap, start_encrypt, end_encrypt;
 
-        clock_t start_decap = clock();
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_encap);
         if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_dec(shared_secret, decoded_ciphertext, global_secret_key) != 0) {
             cJSON_Delete(json);
             response = create_response("{\"error\": \"Decapsulation failed\"}");
@@ -198,12 +231,17 @@ static int request_handler(void *cls,
             *con_cls = NULL;
             return ret;
         }
-        clock_t end_decap = clock();
+        clock_gettime(CLOCK_MONOTONIC_RAW, &end_encap);
+        uint64_t encap_time = (end_encap.tv_sec - start_encap.tv_sec) * 1000000 + (end_encap.tv_nsec - start_encap.tv_nsec) / 1000;
 
         SHA256(shared_secret, sizeof(shared_secret), aes_key);
 
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_encrypt);
         int decrypted_data_len = aes_decrypt(decoded_encrypted_data, encrypted_data_len, aes_key, decoded_iv, decrypted_data);
         (void)decrypted_data_len;
+        clock_gettime(CLOCK_MONOTONIC_RAW, &end_encrypt);
+        uint64_t encrypt_time = (end_encrypt.tv_sec - start_encrypt.tv_sec) * 1000000 + (end_encrypt.tv_nsec - start_encrypt.tv_nsec) / 1000;
+        fprintf(csv_file, "%d,%lu,%lu\n", i + 1, encap_time, encrypt_time);
 
         char response_msg[256];
         snprintf(response_msg, sizeof(response_msg),
@@ -251,6 +289,14 @@ int printIpAddress() {
 }
 
 int main() {
+    csv_file = fopen(CSV_FILE, "w");
+    log_file = fopen(LOG_FILE, "w");
+    if (csv_file == NULL || log_file == NULL) {
+        printf("Unable to create output files.\n");
+        return 1;
+    }
+    fprintf(csv_file, "Iteration,Decapsulation Time (microseconds),AES256 Decryption Time (microseconds)\n");
+
     if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_keypair(global_public_key, global_secret_key) != 0) {
         fprintf(stderr, "Failed to generate Kyber key pair.\n");
         return 1;
@@ -278,5 +324,7 @@ int main() {
     }
     MHD_stop_daemon(daemon);
     printf("Stopped Server\n");
+    fclose(csv_file);
+    fclose(log_file);
     return 0;
 }

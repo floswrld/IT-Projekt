@@ -40,40 +40,6 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
     return totalSize;
 }
 
-char *base64_encode(const unsigned char *input, int length) {
-    int out_len = 4 * ((length + 2) / 3);
-    char *encoded = malloc(out_len + 1);
-    if (encoded == NULL) {
-        return NULL;
-    }
-    int written = EVP_EncodeBlock((unsigned char *)encoded, input, length);
-    if(written < 0){
-        free(encoded);
-        return NULL;
-    }
-    // EVP_EncodeBlock schreibt keinen Null-Byte, falls aber extra Speicher reserviert wurde:
-    encoded[written] = '\0';
-    return encoded;
-}
-
-unsigned char *base64_decode(const char *input, int *out_len) {
-    int in_len = strlen(input);
-    // EVP_DecodeBlock benötigt einen Puffer von mindestens in_len.
-    unsigned char *decoded = malloc(in_len);
-    if (decoded == NULL) {
-        return NULL;
-    }
-    int decoded_len = EVP_DecodeBlock(decoded, (const unsigned char *)input, in_len);
-    if (decoded_len < 0) {
-        free(decoded);
-        return NULL;
-    }
-    // Hinweis: EVP_DecodeBlock liefert eventuell zusätzliche Padding-Bytes.
-    // Eine genauere Behandlung ist nötig, wenn die exakte Länge wichtig ist.
-    *out_len = decoded_len;
-    return decoded;
-}
-
 void send_post_request(const char *url, const char *post_data, struct MemoryStruct *response) {
     CURL *curl = curl_easy_init();
     if (!curl) {
@@ -162,6 +128,43 @@ int aes_encrypt(char *plaintext, size_t plaintext_len, unsigned char *key, unsig
     return ciphertext_len;
 }
 
+int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    if (!ctx) {
+        fprintf(stderr, "Fehler: EVP_CIPHER_CTX_new() schlug fehl.\n");
+        return -1;
+    }
+
+    int len;
+    int plaintext_len = 0;
+
+    // Initialisierung mit AES-256-CBC für die Entschlüsselung
+    if (1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv)) {
+        fprintf(stderr, "Fehler: EVP_DecryptInit_ex() schlug fehl.\n");
+        EVP_CIPHER_CTX_free(ctx);
+        return -1;
+    }
+
+    // Entschlüsselung der Daten
+    if (1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len)) {
+        fprintf(stderr, "Fehler: EVP_DecryptUpdate() schlug fehl.\n");
+        EVP_CIPHER_CTX_free(ctx);
+        return -1;
+    }
+    plaintext_len = len;
+
+    // Finalisieren der Entschlüsselung (Padding entfernen)
+    if (1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)) {
+        fprintf(stderr, "Fehler: EVP_DecryptFinal_ex() schlug fehl.\n");
+        EVP_CIPHER_CTX_free(ctx);
+        return -1;
+    }
+    plaintext_len += len;
+
+    EVP_CIPHER_CTX_free(ctx);
+    return plaintext_len;
+}
+
 int main() {
     char input[64];
     char buffer[BUFFER_SIZE];
@@ -215,7 +218,7 @@ int main() {
         return 1;
     }
 
-    fprintf(csv_file, "Iteration,Encapsulation Time (seconds),AES256 Encryption Time (seconds)\n");
+    fprintf(csv_file, "Iteration,Encapsulation Time (microseconds),AES256 Encryption Time (microseconds)\n");
 
     for (int i = 0; i < ITERATIONS; i++) {
       // 1. Public Key Request
@@ -263,23 +266,9 @@ int main() {
 
         fprintf(csv_file, "%d,%lu,%lu\n", i + 1, encap_time, encrypt_time);
 
-        // 5. Base64-Kodierung der Binärdaten
-        char *b64_ciphertext   = base64_encode(ciphertext, PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES);
-        char *b64_iv           = base64_encode(iv, 16);
-        char *b64_encrypted_data = base64_encode(encrypted_data, encrypted_data_len);
-
-        if (!b64_ciphertext || !b64_iv || !b64_encrypted_data) {
-            fprintf(log_file, "Base64 encoding failed (iteration %d).\n", i+1);
-            free(b64_ciphertext);
-            free(b64_iv);
-            free(b64_encrypted_data);
-            free(response.memory);
-            continue;
-        }
-
         // 6. Send ciphertext and encrypted data to server
         char post_data[8192];
-        sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", b64_ciphertext, b64_iv, b64_encrypted_data);
+        sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", ciphertext, iv, encrypted_data);
         printf("Post Data: \n%s\n", post_data);
 
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
