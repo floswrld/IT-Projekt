@@ -19,7 +19,6 @@
 #define UNUSED(x) (void)(x)
 
 char API_BASE_URL[256] = "http://";
-static const char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 struct MemoryStruct {
     char *memory;
@@ -130,37 +129,22 @@ int aes_encrypt(char *plaintext, size_t plaintext_len, unsigned char *key, unsig
 }
 
 unsigned char *base64_encode(const unsigned char *input, int length) {
-    int output_length = 4 * ((length + 2) / 3);
-    // Speicher für das Ergebnis plus den Nullterminator allokieren
-    unsigned char *encoded_data = malloc(output_length + 1);
-    if (encoded_data == NULL) {
-        return NULL; // Speicherallokierung fehlgeschlagen
+    int encoded_length = 4 * ((length + 2) / 3);
+    unsigned char *encoded = malloc(encoded_length + 1);
+    if (encoded == NULL) {
+        fprintf(stderr, "Fehler: malloc in base64_encode() schlug fehl.\n");
+        return NULL;
     }
-    int i, j;
-    for (i = 0, j = 0; i < length;) {
-        // Hole bis zu 3 Bytes aus dem Input. Falls weniger als 3 Bytes übrig sind, wird 0 verwendet.
-        uint32_t octet_a = i < length ? input[i++] : 0;
-        uint32_t octet_b = i < length ? input[i++] : 0;
-        uint32_t octet_c = i < length ? input[i++] : 0;
-        // Kombiniere die drei Bytes zu einem 24-Bit-Wert
-        uint32_t triple = (octet_a << 16) | (octet_b << 8) | octet_c;
-        // Zerlege den 24-Bit-Wert in vier 6-Bit-Werte und wandle diese in Base64-Zeichen um
-        encoded_data[j++] = encoding_table[(triple >> 18) & 0x3F];
-        encoded_data[j++] = encoding_table[(triple >> 12) & 0x3F];
-        encoded_data[j++] = encoding_table[(triple >> 6)  & 0x3F];
-        encoded_data[j++] = encoding_table[triple         & 0x3F];
+
+    int actual_length = EVP_EncodeBlock(encoded, input, length);
+    if (actual_length < 0) {
+        fprintf(stderr, "Fehler: EVP_EncodeBlock schlug fehl.\n");
+        free(encoded);
+        return NULL;
     }
-    // Bei unvollständigen 3-Byte-Blöcken wird mit '=' gepolstert
-    int mod = length % 3;
-    if (mod > 0) {
-        encoded_data[output_length - 1] = '=';
-        if (mod == 1) {
-            encoded_data[output_length - 2] = '=';
-        }
-    }
-    // Nullterminierung des Strings
-    encoded_data[output_length] = '\0';
-    return encoded_data;
+
+    encoded[actual_length] = '\0';
+    return encoded;
 }
 
 int main() {
