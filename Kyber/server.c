@@ -194,12 +194,12 @@ static int request_handler(void *cls,
         unsigned char *decoded_iv = base64_decode(iv_json->valuestring, &iv_len);
         unsigned char *decoded_encrypted_data = base64_decode(encrypted_data_json->valuestring, &encrypted_data_len);
         printf("Ciphertext: ");
-        for (int i = 0; i < PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES; i++) {
+        for (int i = 0; i < ciphertext_len; i++) {
             printf("%02x", decoded_ciphertext[i]);
         }
         printf("\n");
         printf("IV: ");
-        for (int i = 0; i < sizeof(decoded_iv); i++) {
+        for (int i = 0; i < iv_len; i++) {
             printf("%02x", decoded_iv[i]);
         }
         printf("\n");
