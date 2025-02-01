@@ -267,14 +267,19 @@ int main() {
 
         fprintf(csv_file, "%d,%lu,%lu\n", i + 1, encap_time, encrypt_time);
 
+        printf("Ciphertext: \n%s\n", ciphertext);
+        printf("IV: \n%s\n", iv);
+        printf("Encrypted Data: \n%s\n", encrypted_data);
         unsigned char *ba64_ciphertext = base64_encode(ciphertext, sizeof(ciphertext));
         unsigned char *ba64_iv = base64_encode(iv, sizeof(iv));
         unsigned char *ba64_encrypted_data = base64_encode(encrypted_data, sizeof(encrypted_data));
+        printf("Base64 Ciphertext: \n%s\n", ba64_ciphertext);
+        printf("Base64 IV: \n%s\n", ba64_iv);
+        printf("Base64 Encrypted Data: \n%s\n", ba64_encrypted_data);
 
         // 6. Send ciphertext and encrypted data to server
         char post_data[8192];
         sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", ba64_ciphertext, ba64_iv, ba64_encrypted_data);
-        printf("Post Data: \n%s\n", post_data);
 
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
         send_post_request(buffer, post_data, &response);
