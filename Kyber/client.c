@@ -6,6 +6,7 @@
 #include <openssl/sha.h>
 #include <openssl/rand.h>
 #include <openssl/evp.h>
+#include <openssl/err.h>
 #include <time.h>
 #include "../include/kyber_utils/api.h"
 
@@ -125,12 +126,40 @@ void send_get_request(const char *url, struct MemoryStruct *response) {
 }
 
 int aes_encrypt(char *plaintext, size_t plaintext_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext) {
-  UNUSED(plaintext);
-  UNUSED(plaintext_len);
-  UNUSED(key);
-  UNUSED(iv);
-  UNUSED(ciphertext);
-    return plaintext_len;
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    if (!ctx) {
+        fprintf(stderr, "Fehler: EVP_CIPHER_CTX_new() schlug fehl.\n");
+        return -1;
+    }
+
+    int len;
+    int ciphertext_len = 0;
+
+    // Initialisierung mit AES-256-CBC
+    if (1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv)) {
+        fprintf(stderr, "Fehler: EVP_EncryptInit_ex() schlug fehl.\n");
+        EVP_CIPHER_CTX_free(ctx);
+        return -1;
+    }
+
+    // Verschlüsselung der Daten
+    if (1 != EVP_EncryptUpdate(ctx, ciphertext, &len, (unsigned char *)plaintext, plaintext_len)) {
+        fprintf(stderr, "Fehler: EVP_EncryptUpdate() schlug fehl.\n");
+        EVP_CIPHER_CTX_free(ctx);
+        return -1;
+    }
+    ciphertext_len = len;
+
+    // Finalisieren der Verschlüsselung (Padding hinzufügen)
+    if (1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) {
+        fprintf(stderr, "Fehler: EVP_EncryptFinal_ex() schlug fehl.\n");
+        EVP_CIPHER_CTX_free(ctx);
+        return -1;
+    }
+    ciphertext_len += len;
+
+    EVP_CIPHER_CTX_free(ctx);
+    return ciphertext_len;
 }
 
 int main() {
