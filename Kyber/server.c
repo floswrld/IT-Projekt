@@ -130,8 +130,13 @@ static int request_handler(void *cls,
     }
     struct connection_info_struct *con_info = *con_cls;
     if (strcmp(url, "/init") == 0 && strcmp(method, "POST") == 0) {
+        char response_msg[32];
+        snprintf(response_msg, sizeof(response_msg), "CSV_COUNTER SET TO 0");
+        response = create_response(response_msg);
+        ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+        MHD_destroy_response(response);
         CSV_COUNTER = 0;
-        return 0;
+        return ret;
     }
     /* GET-Route: /get_public_key */
     if (strcmp(url, "/get_public_key") == 0 && strcmp(method, "GET") == 0) {
