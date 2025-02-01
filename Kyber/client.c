@@ -189,12 +189,9 @@ int main() {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
         return 1;
     }
-    printf("Heruntergeladene JSON-Daten:\n%s\n", chunk.memory);
     curl_easy_cleanup(curl_handle);
-
     FILE *csv_file = fopen(CSV_FILE, "w");
     FILE *log_file = fopen(LOG_FILE, "w");
-
     if (csv_file == NULL || log_file == NULL) {
         printf("Unable to create output files.\n");
         return 1;

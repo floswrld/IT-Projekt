@@ -161,7 +161,6 @@ static int request_handler(void *cls,
             return MHD_YES;
         }
         /* Finaler Aufruf: Alle POST-Daten wurden empfangen */
-        fprintf(stderr, "DEBUG: /send_encrypted_data Route, empfangene Daten (%zu Bytes): %s\n", con_info->size, con_info->data);
         cJSON *json = cJSON_Parse(con_info->data);
         if (json == NULL) {
             fprintf(stderr, "DEBUG: cJSON_Parse Fehler: %s\n", cJSON_GetErrorPtr());
