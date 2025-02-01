@@ -134,6 +134,7 @@ static int request_handler(void *cls,
     if (strcmp(url, "/send_encrypted_data") == 0 && strcmp(method, "POST") == 0) {
          struct connection_info_struct *con_info = *con_cls;
          /* Parsing des empfangenen JSON-Bodys */
+         printf("Received data: %s\n", con_info->data);
          cJSON *json = cJSON_Parse(con_info->data);
          if (json == NULL) {
              struct MHD_Response *response = create_response("{\"error\": \"Invalid JSON\"}");
@@ -277,10 +278,17 @@ int main() {
 
     /* 2. HTTP Server starten */
     struct MHD_Daemon *daemon;
-    daemon = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, PORT, NULL, NULL,
-                              &request_handler, NULL,
-                              MHD_OPTION_NOTIFY_COMPLETED, request_completed_callback, NULL,
-                              MHD_OPTION_END);
+    daemon = MHD_start_daemon(
+    MHD_USE_THREAD_PER_CONNECTION,
+    PORT,
+    NULL,
+    NULL,
+    &request_handler,
+    NULL,
+    MHD_OPTION_POST_DATA_BUFFER_SIZE, MAX_POST_SIZE,
+    MHD_OPTION_NOTIFY_COMPLETED, request_completed_callback, NULL,
+    MHD_OPTION_END
+);
 
     if (!daemon) {
         fprintf(stderr, "Failed to start HTTP server\n");
