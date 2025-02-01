@@ -250,8 +250,8 @@ static int request_handler(void *cls,
 
         char response_msg[256];
         snprintf(response_msg, sizeof(response_msg),
-                 "{\"status\": \"Received\", \"decapsulation_time\": \"%f\", \"decrypted_data\": \"%.100s\"}",
-                 (double)(end_encap - start_encap) / CLOCKS_PER_SEC, decrypted_data);
+                 "{\"status\": \"Received\", \"decapsulation_time\": \"%f microseconds\", \"decryption_time\": \"%f microseconds\", \"decrypted_data\": \"%.100s\"}",
+                 encap_time, encrypt_time, decrypted_data);
 
         response = create_response(response_msg);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
