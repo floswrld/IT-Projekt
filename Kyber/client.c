@@ -280,6 +280,11 @@ int main() {
         // 6. Send ciphertext and encrypted data to server
         char post_data[8192];
         sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", b64_ciphertext, b64_iv, b64_encrypted_data);
+        printf("Post Data: \n");
+        for (int i = 0; i < encrypted_data_len; i++) {
+            printf("%02x ", encrypted_data[i]);
+        }
+        printf("\n");
 
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
         send_post_request(buffer, post_data, &response);
