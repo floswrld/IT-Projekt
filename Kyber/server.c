@@ -91,7 +91,7 @@ static int request_handler(void *cls,
             free(con_info);
             return MHD_NO;
         }
-        con_info->data[0] = '\0';
+        con_info->data[0] = ' ';
         con_info->size = 0;
         *con_cls = (void *)con_info;
     }
