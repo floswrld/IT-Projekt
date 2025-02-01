@@ -26,6 +26,17 @@ uint8_t global_public_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES];
 FILE *csv_file;
 FILE *log_file;
 
+static const char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static unsigned char decoding_table[256];
+static int decoding_table_built = 0;
+static void build_decoding_table() {
+    for (int i = 0; i < 64; i++) {
+        decoding_table[(unsigned char) encoding_table[i]] = i;
+    }
+    decoding_table_built = 1;
+}
+
+
 struct MHD_Response *create_response(const char *message) {
     return MHD_create_response_from_buffer(strlen(message), (void *)message, MHD_RESPMEM_PERSISTENT);
 }
@@ -37,31 +48,57 @@ struct connection_info_struct {
 };
 
 unsigned char *base64_decode(const char *input, int *out_len) {
-    int in_len = strlen(input);
-
-    unsigned char *decoded = malloc(in_len);
-    if (decoded == NULL)
-        return NULL;
-
-    int decoded_len = EVP_DecodeBlock(decoded, (const unsigned char *)input, in_len);
-    if (decoded_len < 0) {
-        free(decoded);
+    if (input == NULL || out_len == NULL) {
         return NULL;
     }
-
+    int input_length = strlen(input);
+    // Die Länge eines gültigen Base64-Strings muss durch 4 teilbar sein.
+    if (input_length % 4 != 0) {
+        return NULL;
+    }
+    if (!decoding_table_built) {
+        build_decoding_table();
+    }
+    // Zähle die Padding-Zeichen '=' am Ende (0 bis 2 Stück)
     int padding = 0;
-    if (in_len >= 2) {
-        if (input[in_len - 1] == '=')
-            padding++;
-        if (input[in_len - 2] == '=')
-            padding++;
+    if (input_length > 0 && input[input_length - 1] == '=') {
+        padding++;
     }
-    decoded_len -= padding;
-
-    if (out_len)
-        *out_len = decoded_len;
-
-    return decoded;
+    if (input_length > 1 && input[input_length - 2] == '=') {
+        padding++;
+    }
+    // Berechne die Länge des decodierten Outputs:
+    // Jede 4-Byte-Gruppe liefert 3 Bytes, abzüglich der Padding-Zeichen.
+    *out_len = input_length / 4 * 3 - padding;
+    unsigned char *decoded_data = malloc(*out_len);
+    if (decoded_data == NULL) {
+        return NULL;  // Speicherallokierung fehlgeschlagen
+    }
+    int i, j;
+    for (i = 0, j = 0; i < input_length;) {
+        // Lese 4 Zeichen (sextets) aus dem Eingabestring.
+        uint32_t sextet_a = input[i] == '=' ? 0 : decoding_table[(unsigned char)input[i]];
+        i++;
+        uint32_t sextet_b = input[i] == '=' ? 0 : decoding_table[(unsigned char)input[i]];
+        i++;
+        uint32_t sextet_c = input[i] == '=' ? 0 : decoding_table[(unsigned char)input[i]];
+        i++;
+        uint32_t sextet_d = input[i] == '=' ? 0 : decoding_table[(unsigned char)input[i]];
+        i++;
+        // Kombiniere die vier 6-Bit-Werte zu einem 24-Bit-Wert
+        uint32_t triple = (sextet_a << 18) | (sextet_b << 12) | (sextet_c << 6) | sextet_d;
+        // Extrahiere die drei Bytes aus dem 24-Bit-Wert
+        if (j < *out_len) {
+            decoded_data[j++] = (triple >> 16) & 0xFF;
+        }
+        if (j < *out_len) {
+            decoded_data[j++] = (triple >> 8) & 0xFF;
+        }
+        if (j < *out_len) {
+            decoded_data[j++] = triple & 0xFF;
+        }
+    }
+    return decoded_data;
 }
 
 int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
