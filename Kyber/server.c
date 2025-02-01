@@ -246,7 +246,7 @@ static int request_handler(void *cls,
         clock_gettime(CLOCK_MONOTONIC_RAW, &end_encrypt);
         uint64_t encrypt_time = (end_encrypt.tv_sec - start_encrypt.tv_sec) * 1000000 + (end_encrypt.tv_nsec - start_encrypt.tv_nsec) / 1000;
         CSV_COUNTER++;
-        fprintf(csv_file, "%d,%lu,%lu\n", CSV_COUNTER + 1, encap_time, encrypt_time);
+        fprintf(csv_file, "%d,%lu,%lu\n", CSV_COUNTER, encap_time, encrypt_time);
 
         char response_msg[256];
         snprintf(response_msg, sizeof(response_msg),
