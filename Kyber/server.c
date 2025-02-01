@@ -28,7 +28,7 @@ struct connection_info_struct {
 };
 
 int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
-  	UNUSED(ciphertext);
+    UNUSED(ciphertext);
     UNUSED(ciphertext_len);
     UNUSED(key);
     UNUSED(iv);
@@ -43,18 +43,16 @@ char *base64_encode(const unsigned char *input, int length) {
         return NULL;
     }
     int written = EVP_EncodeBlock((unsigned char *)encoded, input, length);
-    if(written < 0){
+    if (written < 0) {
         free(encoded);
         return NULL;
     }
-    // EVP_EncodeBlock schreibt keinen Null-Byte, falls aber extra Speicher reserviert wurde:
     encoded[written] = '\0';
     return encoded;
 }
 
 unsigned char *base64_decode(const char *input, int *out_len) {
     int in_len = strlen(input);
-    // EVP_DecodeBlock benötigt einen Puffer von mindestens in_len.
     unsigned char *decoded = malloc(in_len);
     if (decoded == NULL) {
         return NULL;
@@ -64,8 +62,6 @@ unsigned char *base64_decode(const char *input, int *out_len) {
         free(decoded);
         return NULL;
     }
-    // Hinweis: EVP_DecodeBlock liefert eventuell zusätzliche Padding-Bytes.
-    // Eine genauere Behandlung ist nötig, wenn die exakte Länge wichtig ist.
     *out_len = decoded_len;
     return decoded;
 }
@@ -78,26 +74,26 @@ static int request_handler(void *cls,
                            const char *upload_data,
                            size_t *upload_data_size,
                            void **con_cls) {
-  	struct MHD_Response *response;
+    struct MHD_Response *response;
     int ret;
-    // con_cls anlegen um Request Body über mehrere Zeilen zu sammeln -> keine Not found Error meldungen als post response
+    /* Falls noch kein connection info Struct vorhanden ist, anlegen */
     if (*con_cls == NULL) {
         struct connection_info_struct *con_info = malloc(sizeof(struct connection_info_struct));
         if (con_info == NULL) {
             return MHD_NO;
         }
-        con_info->data = malloc(1);  // Initial leerer Puffer
+        con_info->data = malloc(1);  // initial leerer Puffer
         if (con_info->data == NULL) {
             free(con_info);
             return MHD_NO;
         }
-        con_info->data[0] = ' ';
+        con_info->data[0] = '\0';
         con_info->size = 0;
         *con_cls = (void *)con_info;
     }
     struct connection_info_struct *con_info = *con_cls;
 
-    // Handle GET Request /get_public_key
+    /* GET: /get_public_key */
     if (strcmp(url, "/get_public_key") == 0 && strcmp(method, "GET") == 0) {
         response = MHD_create_response_from_buffer(PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES,
                                                    global_public_key, MHD_RESPMEM_PERSISTENT);
@@ -106,39 +102,39 @@ static int request_handler(void *cls,
         return ret;
     }
 
-    //Handle POST Request /send_encrypted_data
+    /* POST: /send_encrypted_data */
     if (strcmp(url, "/send_encrypted_data") == 0 && strcmp(method, "POST") == 0) {
 
         /* --- Schritt 1: Sammeln des POST-Bodys --- */
-        if (upload_data_size != 0) {
-            // Vergrößere den Puffer, um die neuen Daten anzuhängen
-            size_t new_size = con_info->size + upload_data_size;
-            charnew_data = realloc(con_info->data, new_size + 1);
+        if (*upload_data_size != 0) {
+            /* Puffer erweitern, um die neuen Daten anzuhängen */
+            size_t new_size = con_info->size + *upload_data_size;
+            char *new_data = realloc(con_info->data, new_size + 1);
             if (new_data == NULL) {
                 return MHD_NO;
             }
             con_info->data = new_data;
             memcpy(con_info->data + con_info->size, upload_data, *upload_data_size);
-            con_info->size = new_size;  // Puffergröße aktualisieren
-            upload_data_size = 0;       // Daten wurden verarbeitet
-            return MHD_YES;              // Warten auf den finalen Aufruf
+            con_info->size = new_size;      // Puffergröße aktualisieren
+            *upload_data_size = 0;          // Daten wurden verarbeitet
+            return MHD_YES;                 // Warten auf den finalen Aufruf
         }
 
         /* --- Schritt 2: Alle Daten wurden empfangen ---
                   Jetzt kann der komplette Body verarbeitet werden. --- */
 
-        // Sicherstellen, dass der Buffer korrekt terminiert ist:
-        charnew_data = realloc(con_info->data, con_info->size + 1);
+        /* Sicherstellen, dass der Buffer korrekt terminiert ist */
+        char *new_data = realloc(con_info->data, con_info->size + 1);
         if (new_data == NULL) {
             return MHD_NO;
         }
         con_info->data = new_data;
         con_info->data[con_info->size] = '\0';
 
-        printf("Empfangene Daten: \n%s\n", con_info->data);
+        printf("Empfangene Daten:\n%s\n", con_info->data);
         cJSON *json = cJSON_Parse(con_info->data);
         if (json == NULL) {
-            response = create_response("{"error": "Invalid JSON"}");
+            response = create_response("{\"error\": \"Invalid JSON\"}");
             ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);
             MHD_destroy_response(response);
             free(con_info->data);
@@ -146,10 +142,9 @@ static int request_handler(void *cls,
             *con_cls = NULL;
             return ret;
         }
-            // HIER SOLL DER POST BODY AUSGELESEN UND ALS JSON VERARBEITET WERDEN
-
+        /* --- POST Body als JSON verarbeiten --- */
         cJSON *ciphertext_json = cJSON_GetObjectItem(json, "ciphertext");
-        cJSON *iv_json = cJSON_GetObjectItem(json, "iv");
+        cJSON *iv_json         = cJSON_GetObjectItem(json, "iv");
         cJSON *encrypted_data_json = cJSON_GetObjectItem(json, "data");
 
         if (!cJSON_IsString(ciphertext_json) ||
@@ -191,7 +186,7 @@ static int request_handler(void *cls,
         unsigned char aes_key[32];
         unsigned char decrypted_data[4096];
 
-        // 1. Decapsulation des Ciphertexts
+        /* 1. Decapsulation des Ciphertexts */
         clock_t start_decap = clock();
         if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_dec(shared_secret, decoded_ciphertext, global_secret_key) != 0) {
             response = create_response("{\"error\": \"Decapsulation failed\"}");
@@ -208,14 +203,14 @@ static int request_handler(void *cls,
         }
         clock_t end_decap = clock();
 
-        // 2. Hashing des Shared Secrets in den AES Key
+        /* 2. Hashing des Shared Secrets in den AES Key */
         SHA256(shared_secret, sizeof(shared_secret), aes_key);
 
-        // 3. Decrypt AES256 der encrypted data
+        /* 3. Decrypt AES256 der encrypted data */
         int decrypted_data_len = aes_decrypt(decoded_encrypted_data, encrypted_data_len, aes_key, decoded_iv, decrypted_data);
         UNUSED(decrypted_data_len);
 
-        // 4. Antworten mit Received und decapsulation time
+        /* 4. Antworten mit Status, Decapsulation Time und (gekürzten) Decrypted Data */
         char response_msg[256];
         snprintf(response_msg, sizeof(response_msg),
                  "{\"status\": \"Received\", \"decapsulation_time\": \"%f\", \"decrypted_data\": \"%.100s\"}",
@@ -236,14 +231,15 @@ static int request_handler(void *cls,
         return ret;
     }
 
+    /* Default: nicht gefundene URL */
     response = create_response("{\"error\": \"Not found\"}");
     ret = MHD_queue_response(connection, MHD_HTTP_NOT_FOUND, response);
     MHD_destroy_response(response);
     return ret;
 }
 
-int printIpAddress(){
-  FILE *fp;
+int printIpAddress() {
+    FILE *fp;
     char ip[64] = {0};
     fp = popen("ifconfig | grep 'inet ' | grep -m 1 -Po '192\\.(?!255\\b)\\d{1,3}\\.(?!255\\b)\\d{1,3}\\.(?!255\\b)\\d{1,3}'", "r");
     if (fp == NULL) {
@@ -264,13 +260,13 @@ int printIpAddress(){
 }
 
 int main() {
-  // 1. assymmetrische Keypair generation
+    /* 1. Asymmetrische Keypair-Generierung */
     if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_keypair(global_public_key, global_secret_key) != 0) {
         fprintf(stderr, "Failed to generate Kyber key pair.\n");
         return 1;
     }
 
-    // 2. Start Daemon HTTP Server
+    /* 2. HTTP Server starten */
     struct MHD_Daemon *daemon;
     daemon = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, PORT, NULL, NULL,
                               &request_handler, NULL, MHD_OPTION_END);
@@ -281,19 +277,16 @@ int main() {
     }
 
     printIpAddress();
-     char input[128];
+    char input[128];
     while (1) {
         printf("Geben Sie 'stop' ein, um den Server zu beenden:\n");
         if (fgets(input, sizeof(input), stdin) == NULL) {
             break;
         }
-
         input[strcspn(input, "\r\n")] = '\0';
-
         for (int i = 0; input[i]; i++) {
             input[i] = tolower((unsigned char)input[i]);
         }
-
         if (strcmp(input, "stop") == 0) {
             break;
         }
