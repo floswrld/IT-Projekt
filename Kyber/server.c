@@ -86,7 +86,13 @@ static int request_handler(void *cls,
         if (con_info == NULL) {
             return MHD_NO;
         }
-        con_info->data = NULL;
+        /* Speicher für einen leeren String reservieren */
+        con_info->data = malloc(1);
+        if (con_info->data == NULL) {
+            free(con_info);
+            return MHD_NO;
+        }
+        con_info->data[0] = '\0';
         con_info->size = 0;
         *con_cls = (void *)con_info;
     }
@@ -125,6 +131,11 @@ static int request_handler(void *cls,
         /* Wenn *upload_data_size == 0, ist der komplette Body empfangen.
            -> verarbeite den gesamten Body, der in con_info->data steht. */
         else {
+              if (con_info->data == NULL) {
+                /* Sollte nicht mehr der Fall sein, da wir con_info->data initialisiert haben */
+                con_info->data = strdup("");
+                con_info->size = 0;
+            }
             cJSON *json = cJSON_Parse(con_info->data);
             printf("Received JSON: %s\n", con_info->data);
             if (!json) {
