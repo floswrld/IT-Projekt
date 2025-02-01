@@ -128,7 +128,7 @@ static int request_handler(void *cls,
                   Jetzt kann der komplette Body verarbeitet werden. --- */
 
         // Mit cJSON den JSON-String parsen
-        printf("%s", con_info->data);
+        printf("Empfangene Daten: \n%s\n", con_info->data);
         cJSON *json = cJSON_Parse(con_info->data);
         if (json == NULL) {
             response = create_response("{\"error\": \"Invalid JSON\"}");
