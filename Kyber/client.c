@@ -249,7 +249,6 @@ int main() {
 
         // 4. Daten verschlüsseln (Placeholder)
         unsigned char encrypted_data[4096];
-        // response.memory = plaintext
         clock_gettime(CLOCK_MONOTONIC_RAW, &start_encrypt);
         int encrypted_data_len = aes_encrypt(chunk.memory, chunk.size, aes_key, iv, encrypted_data);
         UNUSED(encrypted_data_len);
