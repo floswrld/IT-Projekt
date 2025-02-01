@@ -251,27 +251,9 @@ int main() {
 
         fprintf(csv_file, "%d,%lu,%lu\n", i + 1, encap_time, encrypt_time);
 
-        printf("Ciphertext: ");
-        for (int i = 0; i < PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES; i++) {
-            printf("%02x", ciphertext[i]);
-        }
-        printf("\n");
-        printf("IV: ");
-        for (int i = 0; i < sizeof(iv); i++) {
-            printf("%02x", iv[i]);
-        }
-        printf("\n");
-        printf("Encrypted Data: ");
-        for (int i = 0; i < encrypted_data_len; i++) {
-            printf("%02x", encrypted_data[i]);
-        }
-        printf("\n");
         unsigned char *ba64_ciphertext = base64_encode(ciphertext, sizeof(ciphertext));
         unsigned char *ba64_iv = base64_encode(iv, sizeof(iv));
         unsigned char *ba64_encrypted_data = base64_encode(encrypted_data, encrypted_data_len);
-        printf("Base64 Ciphertext: \n%s\n", ba64_ciphertext);
-        printf("Base64 IV: \n%s\n", ba64_iv);
-        printf("Base64 Encrypted Data: \n%s\n", ba64_encrypted_data);
 
         // 6. Send ciphertext and encrypted data to server
         char post_data[8192];
