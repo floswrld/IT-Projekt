@@ -111,9 +111,12 @@ static int request_handler(void *cls,
                 return MHD_NO;
             }
             con_info->data = new_data;
+
             memcpy(con_info->data + con_info->size, upload_data, *upload_data_size);
             con_info->size += *upload_data_size;
+
             con_info->data[con_info->size] = '\0';
+
             *upload_data_size = 0;
             return MHD_YES;
         }
@@ -121,6 +124,7 @@ static int request_handler(void *cls,
            -> verarbeite den gesamten Body, der in con_info->data steht. */
         else {
             cJSON *json = cJSON_Parse(con_info->data);
+            printf("Received JSON: %s\n", con_info->data);
             if (!json) {
                 response = create_response("{\"error\": \"Invalid JSON\"}");
                 ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);

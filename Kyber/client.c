@@ -9,7 +9,7 @@
 #include <time.h>
 #include "../include/kyber_utils/api.h"
 
-#define ITERATIONS 1000
+#define ITERATIONS 10
 #define URL "https://ogcapi.hft-stuttgart.de/sta/icity_data_security/v1.1"
 #define CSV_FILE "client_timings.csv"
 #define LOG_FILE "client_log.txt"
@@ -83,7 +83,11 @@ void send_post_request(const char *url, const char *post_data, struct MemoryStru
     response->memory = malloc(1);
     response->size = 0;
 
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+
     curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POST, 1);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
@@ -93,7 +97,7 @@ void send_post_request(const char *url, const char *post_data, struct MemoryStru
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() in send_post_request failed: %s\n", curl_easy_strerror(res));
     }
-
+    curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
 }
 
