@@ -218,7 +218,12 @@ int main() {
         SHA256(shared_secret, sizeof(shared_secret), aes_key);
         unsigned char iv[16];
         RAND_bytes(iv, sizeof(iv));
-        printf("%s\n", iv);
+
+        printf("Erzeugter IV: ");
+        for (size_t i = 0; i < sizeof(iv); i++) {
+            printf("%02x", iv[i]);
+        }
+        printf("\n");
 
         // 4. Daten verschlüsseln (Placeholder)
         unsigned char encrypted_data[4096];
