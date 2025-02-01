@@ -36,20 +36,32 @@ struct connection_info_struct {
     size_t size;
 };
 
-/* Base64-Codierung */
-char *base64_encode(const unsigned char *input, int length) {
-    int out_len = 4 * ((length + 2) / 3);
-    char *encoded = malloc(out_len + 1);
-    if (encoded == NULL) {
+unsigned char *base64_decode(const char *input, int *out_len) {
+    int in_len = strlen(input);
+
+    unsigned char *decoded = malloc(in_len);
+    if (decoded == NULL)
+        return NULL;
+
+    int decoded_len = EVP_DecodeBlock(decoded, (const unsigned char *)input, in_len);
+    if (decoded_len < 0) {
+        free(decoded);
         return NULL;
     }
-    int written = EVP_EncodeBlock((unsigned char *)encoded, input, length);
-    if (written < 0) {
-        free(encoded);
-        return NULL;
+
+    int padding = 0;
+    if (in_len >= 2) {
+        if (input[in_len - 1] == '=')
+            padding++;
+        if (input[in_len - 2] == '=')
+            padding++;
     }
-    encoded[written] = '\0';
-    return encoded;
+    decoded_len -= padding;
+
+    if (out_len)
+        *out_len = decoded_len;
+
+    return decoded;
 }
 
 int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
@@ -87,22 +99,6 @@ int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char 
 
     EVP_CIPHER_CTX_free(ctx);
     return plaintext_len;
-}
-
-/* Base64-Decodierung */
-unsigned char *base64_decode(const char *input, int *out_len) {
-    int in_len = strlen(input);
-    unsigned char *decoded = malloc(in_len);
-    if (decoded == NULL) {
-        return NULL;
-    }
-    int decoded_len = EVP_DecodeBlock(decoded, (const unsigned char *)input, in_len);
-    if (decoded_len < 0) {
-        free(decoded);
-        return NULL;
-    }
-    *out_len = decoded_len;
-    return decoded;
 }
 
 static int request_handler(void *cls,
@@ -195,16 +191,16 @@ static int request_handler(void *cls,
         }
 
         int ciphertext_len = 0, iv_len = 0, encrypted_data_len = 0;
-        unsigned char *decoded_ciphertext = (unsigned char *)ciphertext_json->valuestring;
-        unsigned char *decoded_iv = (unsigned char *)iv_json->valuestring;
-        unsigned char *decoded_encrypted_data = (unsigned char *)encrypted_data_json->valuestring;
+        unsigned char *decoded_ciphertext = base64_decode(ciphertext_json->valuestring, &ciphertext_len);
+        unsigned char *decoded_iv = base64_decode(iv_json->valuestring, &iv_len);
+        unsigned char *decoded_encrypted_data = base64_decode(encrypted_data_json->valuestring, &encrypted_data_len);
 
         if (!decoded_ciphertext ||
                     ciphertext_len != PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES ||
                     !decoded_iv || iv_len != 16 ||
                     !decoded_encrypted_data) {
             cJSON_Delete(json);
-            response = create_response("{\"error\": \"Oops! Something went wrong.\"}");
+            response = create_response("{\"error\": \"Oops! Something went wrong with base64_decode.\"}");
             ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, response);
             MHD_destroy_response(response);
             free(con_info->data);
