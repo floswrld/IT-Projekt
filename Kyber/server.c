@@ -38,31 +38,29 @@ struct connection_info_struct {
 };
 
 unsigned char *base64_decode(const char *input, int *out_len) {
-    unsigned char *base64_decode(const char *input, int *out_len) {
-        int input_len = strlen(input);
-        int max_decoded_length = (input_len * 3) / 4;
-        unsigned char *decoded = malloc(max_decoded_length + 1); // +1 für den Nullterminator
-        if (decoded == NULL) {
-            fprintf(stderr, "Fehler: malloc in base64_decode() schlug fehl.\n");
-            return NULL;
-        }
-
-        int decoded_length = EVP_DecodeBlock(decoded, (const unsigned char *)input, input_len);
-        if (decoded_length < 0) {
-            fprintf(stderr, "Fehler: EVP_DecodeBlock schlug fehl.\n");
-            free(decoded);
-            return NULL;
-        }
-        if (input_len > 0 && input[input_len - 1] == '=')
-            decoded_length--;
-        if (input_len > 1 && input[input_len - 2] == '=')
-            decoded_length--;
-        decoded[decoded_length] = '\0';
-
-        if (out_len)
-            *out_len = decoded_length;
-        return decoded;
+    int input_len = strlen(input);
+    int max_decoded_length = (input_len * 3) / 4;
+    unsigned char *decoded = malloc(max_decoded_length + 1); // +1 für den Nullterminator
+    if (decoded == NULL) {
+        fprintf(stderr, "Fehler: malloc in base64_decode() schlug fehl.\n");
+        return NULL;
     }
+
+    int decoded_length = EVP_DecodeBlock(decoded, (const unsigned char *)input, input_len);
+    if (decoded_length < 0) {
+        fprintf(stderr, "Fehler: EVP_DecodeBlock schlug fehl.\n");
+        free(decoded);
+        return NULL;
+    }
+    if (input_len > 0 && input[input_len - 1] == '=')
+        decoded_length--;
+    if (input_len > 1 && input[input_len - 2] == '=')
+        decoded_length--;
+    decoded[decoded_length] = '\0';
+
+    if (out_len)
+        *out_len = decoded_length;
+    return decoded;
 }
 
 int aes_decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
