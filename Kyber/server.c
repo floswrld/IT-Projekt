@@ -278,7 +278,9 @@ int main() {
     /* 2. HTTP Server starten */
     struct MHD_Daemon *daemon;
     daemon = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, PORT, NULL, NULL,
-                              &request_handler, NULL, MHD_OPTION_END);
+                              &request_handler, NULL,
+                              MHD_OPTION_NOTIFY_COMPLETED, request_completed_callback, NULL,
+                              MHD_OPTION_END);
 
     if (!daemon) {
         fprintf(stderr, "Failed to start HTTP server\n");
