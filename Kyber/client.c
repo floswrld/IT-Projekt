@@ -224,6 +224,9 @@ int main() {
       // 1. Public Key Request
         struct MemoryStruct response;
         struct timespec start_encap, end_encap, start_encrypt, end_encrypt;
+        snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/init");
+        send_post_request(buffer, "", &response);
+        free(response.memory);
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/get_public_key");
         send_get_request(buffer, &response);
         if (response.size == 0) {

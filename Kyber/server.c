@@ -17,8 +17,8 @@ typedef int MHD_Result;
 #define PORT 8080
 #define MAX_POST_SIZE 8192
 #define UNUSED(x) (void)(x)
-#define CSV_FILE "client_timings.csv"
-#define LOG_FILE "client_log.txt"
+#define CSV_FILE "server_timings.csv"
+#define LOG_FILE "server_log.txt"
 
 uint8_t CSV_COUNTER = 0;
 uint8_t global_secret_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_SECRETKEYBYTES];
@@ -134,7 +134,7 @@ static int request_handler(void *cls,
     struct connection_info_struct *con_info = *con_cls;
     if (strcmp(url, "/init") == 0 && strcmp(method, "POST") == 0) {
         CSV_COUNTER = 0;
-        return ret;
+        return 0;
     }
     /* GET-Route: /get_public_key */
     if (strcmp(url, "/get_public_key") == 0 && strcmp(method, "GET") == 0) {
@@ -250,7 +250,7 @@ static int request_handler(void *cls,
 
         char response_msg[256];
         snprintf(response_msg, sizeof(response_msg),
-                 "{\"status\": \"Received\", \"decapsulation_time\": \"%f microseconds\", \"decryption_time\": \"%f microseconds\", \"decrypted_data\": \"%.100s\"}",
+                 "{\"status\": \"Received\", \"decapsulation_time\": \"%ld microseconds\", \"decryption_time\": \"%ld microseconds\", \"decrypted_data\": \"%.100s\"}",
                  encap_time, encrypt_time, decrypted_data);
 
         response = create_response(response_msg);
