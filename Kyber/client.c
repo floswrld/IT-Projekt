@@ -225,9 +225,9 @@ int main() {
         int encrypted_data_len = aes_encrypt(chunk.memory, chunk.size, aes_key, iv, encrypted_data);
         UNUSED(encrypted_data_len);
         clock_gettime(CLOCK_MONOTONIC_RAW, &end_encrypt);
-        uint64_t encrypt_time = (end_encrypt.tv_sec - start_encrypt.tv_sec) * 1000000 + (end_encrypt.tv_nsec - start_enrypt.tv_nsec) / 1000;
+        uint64_t encrypt_time = (end_encrypt.tv_sec - start_encrypt.tv_sec) * 1000000 + (end_encrypt.tv_nsec - start_encrypt.tv_nsec) / 1000;
 
-        fprintf(csv_file, "%d,%llu,%llu\n", i + 1, encap_time, encrypt_time);
+        fprintf(csv_file, "%d,%lu,%lu\n", i + 1, encap_time, encrypt_time);
 
         // 5. Base64-Kodierung der Binärdaten
         char *b64_ciphertext   = base64_encode(ciphertext, PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES);
