@@ -20,6 +20,7 @@ typedef int MHD_Result;
 #define CSV_FILE "client_timings.csv"
 #define LOG_FILE "client_log.txt"
 
+uint8_t CSV_COUNTER = 0;
 uint8_t global_secret_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_SECRETKEYBYTES];
 uint8_t global_public_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES];
 FILE *csv_file;
@@ -131,7 +132,10 @@ static int request_handler(void *cls,
         return MHD_YES;
     }
     struct connection_info_struct *con_info = *con_cls;
-
+    if (strcmp(url, "/init") == 0 && strcmp(method, "POST") == 0) {
+        CSV_COUNTER = 0;
+        return ret;
+    }
     /* GET-Route: /get_public_key */
     if (strcmp(url, "/get_public_key") == 0 && strcmp(method, "GET") == 0) {
         response = MHD_create_response_from_buffer(PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES,
@@ -241,12 +245,13 @@ static int request_handler(void *cls,
         (void)decrypted_data_len;
         clock_gettime(CLOCK_MONOTONIC_RAW, &end_encrypt);
         uint64_t encrypt_time = (end_encrypt.tv_sec - start_encrypt.tv_sec) * 1000000 + (end_encrypt.tv_nsec - start_encrypt.tv_nsec) / 1000;
-        fprintf(csv_file, "%d,%lu,%lu\n", i + 1, encap_time, encrypt_time);
+        CSV_COUNTER++;
+        fprintf(csv_file, "%d,%lu,%lu\n", CSV_COUNTER + 1, encap_time, encrypt_time);
 
         char response_msg[256];
         snprintf(response_msg, sizeof(response_msg),
                  "{\"status\": \"Received\", \"decapsulation_time\": \"%f\", \"decrypted_data\": \"%.100s\"}",
-                 (double)(end_decap - start_decap) / CLOCKS_PER_SEC, decrypted_data);
+                 (double)(end_encap - start_encap) / CLOCKS_PER_SEC, decrypted_data);
 
         response = create_response(response_msg);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
