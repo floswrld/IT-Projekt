@@ -10,7 +10,7 @@
 #include <time.h>
 #include "../include/kyber_utils/api.h"
 
-#define ITERATIONS 1
+#define ITERATIONS 100
 #define URL "https://ogcapi.hft-stuttgart.de/sta/icity_data_security/v1.1"
 #define CSV_FILE "client_timings.csv"
 #define LOG_FILE "client_log.txt"
