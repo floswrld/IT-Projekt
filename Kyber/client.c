@@ -10,15 +10,18 @@
 #include <time.h>
 #include "../include/kyber_utils/api.h"
 
+/* ---------------- DEFINITIONS ---------------- */
 #define ITERATIONS 100
 #define URL "https://ogcapi.hft-stuttgart.de/sta/icity_data_security/v1.1"
 #define CSV_FILE "client_timings.csv"
 #define LOG_FILE "client_log.txt"
 #define BUFFER_SIZE 256
-
 #define UNUSED(x) (void)(x)
+/* ---------------- DEFINITIONS ---------------- */
 
+/* ---------------- GLOBAL VARIABLES ---------------- */
 char API_BASE_URL[256] = "http://";
+/* ---------------- GLOBAL VARIABLES ---------------- */
 
 struct MemoryStruct {
     char *memory;
@@ -97,33 +100,25 @@ int aes_encrypt(char *plaintext, size_t plaintext_len, unsigned char *key, unsig
         fprintf(stderr, "Fehler: EVP_CIPHER_CTX_new() schlug fehl.\n");
         return -1;
     }
-
     int len;
     int ciphertext_len = 0;
-
-    // Initialisierung mit AES-256-CBC
     if (1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv)) {
         fprintf(stderr, "Fehler: EVP_EncryptInit_ex() schlug fehl.\n");
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
-
-    // Verschlüsselung der Daten
     if (1 != EVP_EncryptUpdate(ctx, ciphertext, &len, (unsigned char *)plaintext, plaintext_len)) {
         fprintf(stderr, "Fehler: EVP_EncryptUpdate() schlug fehl.\n");
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
     ciphertext_len = len;
-
-    // Finalisieren der Verschlüsselung (Padding hinzufügen)
     if (1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) {
         fprintf(stderr, "Fehler: EVP_EncryptFinal_ex() schlug fehl.\n");
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
     ciphertext_len += len;
-
     EVP_CIPHER_CTX_free(ctx);
     return ciphertext_len;
 }
@@ -135,24 +130,25 @@ unsigned char *base64_encode(const unsigned char *input, int length) {
         fprintf(stderr, "Fehler: malloc in base64_encode() schlug fehl.\n");
         return NULL;
     }
-
     int actual_length = EVP_EncodeBlock(encoded, input, length);
     if (actual_length < 0) {
         fprintf(stderr, "Fehler: EVP_EncodeBlock schlug fehl.\n");
         free(encoded);
         return NULL;
     }
-
     encoded[actual_length] = '\0';
     return encoded;
 }
 
 int main() {
+    /* -------- Init files -------- */
     char input[64];
     char buffer[BUFFER_SIZE];
     int a, b, c, d, port;
     int valid = 0;
+    /* -------- Init files -------- */
 
+    /* -------- Dialog to determine <ip-address>:<port> to connect to -------- */
     while (!valid) {
         printf("Bitte geben Sie die Adresse im Format <IP:Port> ein (z.B. 127.0.0.1:8080): ");
         if (fgets(input, sizeof(input), stdin) == NULL) {
@@ -170,8 +166,9 @@ int main() {
         }
     }
     strcat(API_BASE_URL, input);
+    /* -------- Dialog to determine <ip-address>:<port> to connect to -------- */
 
-    // Get Data to encrypt
+    /* -------- Get Data to encrypt via AES256 -------- */
     CURL *curl_handle;
     CURLcode res;
     struct MemoryStruct chunk;
@@ -190,24 +187,31 @@ int main() {
         return 1;
     }
     curl_easy_cleanup(curl_handle);
+    /* -------- Get Data to encrypt via AES256 -------- */
+
+    /* -------- Init files -------- */
     FILE *csv_file = fopen(CSV_FILE, "w");
     FILE *log_file = fopen(LOG_FILE, "w");
     if (csv_file == NULL || log_file == NULL) {
         printf("Unable to create output files.\n");
         return 1;
     }
-
     fprintf(csv_file, "Iteration,Encapsulation Time (microseconds),AES256 Encryption Time (microseconds)\n");
+    /* -------- Init files -------- */
+
+    /* -------- Init POST Request -------- */
     struct MemoryStruct responseInit;
     snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/init");
     send_post_request(buffer, "", &responseInit);
     free(responseInit.memory);
+    /* -------- Init POST Request -------- */
 
+    /* -------- Iterations -------- */
     for (int i = 0; i < ITERATIONS; i++) {
-      // 1. Public Key Request
+
+        /* ---- GET Public Key from Server ---- */
         struct MemoryStruct response;
         struct timespec start_encap, end_encap, start_encrypt, end_encrypt;
-
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/get_public_key");
         send_get_request(buffer, &response);
         if (response.size == 0) {
@@ -218,9 +222,9 @@ int main() {
         uint8_t public_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES];
         memcpy(public_key, response.memory, PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES);
         free(response.memory);
+        /* ---- GET Public Key from Server ---- */
 
-
-        // 2. Kyber Encapsulation
+        /* ---- Kyber Encapsulation ---- */
         uint8_t ciphertext[PQCLEAN_KYBER1024_CLEAN_CRYPTO_CIPHERTEXTBYTES];
         uint8_t shared_secret[PQCLEAN_KYBER1024_CLEAN_CRYPTO_BYTES];
 
@@ -228,39 +232,54 @@ int main() {
         PQCLEAN_KYBER1024_CLEAN_crypto_kem_enc(ciphertext, shared_secret, public_key);
         clock_gettime(CLOCK_MONOTONIC_RAW, &end_encap);
         uint64_t encap_time = (end_encap.tv_sec - start_encap.tv_sec) * 1000000 + (end_encap.tv_nsec - start_encap.tv_nsec) / 1000;
+        /* ---- Kyber Encapsulation ---- */
 
-        // 3. AES Key ableiten
+        /* ---- SHA256 ---- */
         unsigned char aes_key[32];
         SHA256(shared_secret, sizeof(shared_secret), aes_key);
         unsigned char iv[16];
         RAND_bytes(iv, sizeof(iv));
+        /* ---- SHA256 ---- */
 
-        // 4. Daten verschlüsseln (Placeholder)
+        /* ---- AES256 Encryption ---- */
         unsigned char encrypted_data[4096];
         clock_gettime(CLOCK_MONOTONIC_RAW, &start_encrypt);
         int encrypted_data_len = aes_encrypt(chunk.memory, chunk.size, aes_key, iv, encrypted_data);
         clock_gettime(CLOCK_MONOTONIC_RAW, &end_encrypt);
         uint64_t encrypt_time = (end_encrypt.tv_sec - start_encrypt.tv_sec) * 1000000 + (end_encrypt.tv_nsec - start_encrypt.tv_nsec) / 1000;
+        /* ---- AES256 Encryption ---- */
 
+        /* ---- Print Meassured Times in csv ---- */
         fprintf(csv_file, "%d,%lu,%lu\n", i + 1, encap_time, encrypt_time);
+        /* ---- Print Meassured Times in csv ---- */
 
+        /* ---- Encode Base64 ---- */
         unsigned char *ba64_ciphertext = base64_encode(ciphertext, sizeof(ciphertext));
         unsigned char *ba64_iv = base64_encode(iv, sizeof(iv));
         unsigned char *ba64_encrypted_data = base64_encode(encrypted_data, encrypted_data_len);
+        /* ---- Encode Base64 ---- */
 
-        // 6. Send ciphertext and encrypted data to server
+        /* ---- Build JSON to POST to Server ---- */
         char post_data[8192];
         sprintf(post_data, "{ \"ciphertext\": \"%s\", \"iv\": \"%s\", \"data\": \"%s\" }", ba64_ciphertext, ba64_iv, ba64_encrypted_data);
+        /* ---- Build JSON to POST to Server ---- */
 
+        /* ---- POST Request ---- */
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
         send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
         printf("Server response (iteration %d): %s\n", i + 1, response.memory);
+        /* ---- POST Request ---- */
 
-        // Speicher freigeben
+        /* ---- Free memory ---- */
         free(response.memory);
+        /* ---- Free memory ---- */
     }
+    /* -------- Iterations -------- */
+
+    /* -------- Close files -------- */
     fclose(csv_file);
     fclose(log_file);
+    /* -------- Close files -------- */
     return 0;
 }
