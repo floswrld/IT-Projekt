@@ -279,7 +279,7 @@ static int request_handler(void *cls,
         /* -------- Print Meassured Times in csv -------- */
 
         /* -------- Build and send HTTP Response -------- */
-        char response_msg[256];
+        char response_msg[16];
         snprintf(response_msg, sizeof(response_msg), "%ld", verification_time);
         response = create_response(response_msg);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
@@ -290,6 +290,9 @@ static int request_handler(void *cls,
         cJSON_Delete(json);
         free(con_info->data);
         free(con_info);
+        free(decoded_public_key);
+        free(decoded_signature);
+        free(decoded_encrypted_data);
         *con_cls = NULL;
         return ret;
         /* -------- Free memory -------- */
