@@ -120,6 +120,37 @@ unsigned char *base64_encode(const unsigned char *input, int length) {
     return encoded;
 }
 
+void hash_data(const unsigned char *data, size_t data_len, unsigned char *output_hash) {
+    EVP_MD_CTX *mdctx;
+    unsigned int hash_len;
+    // Create and initialize the context
+    mdctx = EVP_MD_CTX_new();
+    if (!mdctx) {
+        fprintf(stderr, "Failed to create hash context.\n");
+        exit(EXIT_FAILURE);
+    }
+    // Initialize the hash function (SHA-256)
+    if (1 != EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL)) {
+        fprintf(stderr, "Failed to initialize hash function.\n");
+        EVP_MD_CTX_free(mdctx);
+        exit(EXIT_FAILURE);
+    }
+    // Update the hash with the data
+    if (1 != EVP_DigestUpdate(mdctx, data, data_len)) {
+        fprintf(stderr, "Failed to update hash with data.\n");
+        EVP_MD_CTX_free(mdctx);
+        exit(EXIT_FAILURE);
+    }
+    // Finalize the hash and retrieve the result
+    if (1 != EVP_DigestFinal_ex(mdctx, output_hash, &hash_len)) {
+        fprintf(stderr, "Failed to finalize hash.\n");
+        EVP_MD_CTX_free(mdctx);
+        exit(EXIT_FAILURE);
+    }
+    // Free the context
+    EVP_MD_CTX_free(mdctx);
+}
+
 int main() {
     /* -------- Init files -------- */
     char input[64];
@@ -220,7 +251,6 @@ int main() {
         clock_gettime(CLOCK_MONOTONIC_RAW, &start_key);
         if (PQCLEAN_SPHINCSSHAKE256SSIMPLE_CLEAN_crypto_sign_keypair(public_key, secret_key) != 0) {
             fprintf(log_file, "Key pair generation failed.\n");
-            free(encrypted_data);
             return 1;
         }
         clock_gettime(CLOCK_MONOTONIC_RAW, &end_key);
@@ -232,7 +262,6 @@ int main() {
         if (PQCLEAN_SPHINCSSHAKE256SSIMPLE_CLEAN_crypto_sign_signature(signature, &signature_len,
             data_hash, SHA256_DIGEST_LENGTH, secret_key) != 0) {
             fprintf(log_file, "Signing failed.\n");
-            free(encrypted_data);
             return 1;
         }
         clock_gettime(CLOCK_MONOTONIC_RAW, &end_signature);
