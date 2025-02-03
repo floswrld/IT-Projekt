@@ -267,7 +267,7 @@ static int request_handler(void *cls,
             free(decoded_signature);
             return 1;
         } else {
-            fprintf(log_file, "Signature verification successful on iteration %d.\n", i + 1);
+            fprintf(log_file, "Signature verification successful on iteration %d.\n", CSV_COUNTER + 1);
         }
         /* --- Verify the signature on the hash of the encrypted data --- */
 
