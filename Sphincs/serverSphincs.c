@@ -32,34 +32,7 @@ struct MHD_Response *create_response(const char *message) {
 struct connection_info_struct {
     char *data;
     size_t size;
-    struct MHD_PostProcessor *post_processor;
 };
-
-static int iterate_post(void *con_cls, enum MHD_ValueKind kind, const char *key,
-                          const char *filename, const char *content_type,
-                          const char *transfer_encoding, const char *data, uint64_t off,
-                          size_t size) {
-    struct connection_info_struct *con_info = con_cls;
-    UNUSED(kind);
-    UNUSED(key);
-    UNUSED(filename);
-    UNUSED(content_type);
-    UNUSED(transfer_encoding);
-    UNUSED(off);
-
-    if (size > 0) {
-        char *new_data = realloc(con_info->data, con_info->size + size + 1);
-        if (new_data == NULL) {
-            fprintf(stderr, "Fehler: realloc schlug fehl in iterate_post().\n");
-            return MHD_NO;
-        }
-        memcpy(new_data + con_info->size, data, size);
-        con_info->data = new_data;
-        con_info->size += size;
-        con_info->data[con_info->size] = '\0';
-    }
-    return MHD_YES;
-}
 
 unsigned char *base64_decode(const char *input, int *out_len) {
     int input_len = strlen(input);
@@ -177,19 +150,7 @@ static int request_handler(void *cls,
         }
         con_info->data[0] = '\0';
         con_info->size = 0;
-        con_info->post_processor = NULL;
         *con_cls = (void *)con_info;
-
-        /* Wenn es sich um einen POST handelt, den POST-Prozessor erstellen */
-        if (strcmp(method, "POST") == 0) {
-            con_info->post_processor =
-                MHD_create_post_processor(connection, MAX_POST_SIZE, iterate_post, (void *)con_info);
-            if (con_info->post_processor == NULL) {
-                free(con_info->data);
-                free(con_info);
-                return MHD_NO;
-            }
-        }
         return MHD_YES;
     }
     struct connection_info_struct *con_info = *con_cls;
@@ -214,9 +175,22 @@ static int request_handler(void *cls,
 
         /* -------- Load all POST Request Data -------- */
         printf("/send_data_package\n");
-        if (*upload_data_size != 0) {
-            if (MHD_post_process(con_info->post_processor, upload_data, *upload_data_size) != MHD_YES)
+        if (*upload_data_size > 0) {
+            size_t new_size = con_info->size + *upload_data_size;
+            if (new_size > MAX_POST_SIZE) {
+                response = create_response("{\"error\": \"POST data too large\"}");
+                ret = MHD_queue_response(connection, MHD_HTTP_CONTENT_TOO_LARGE, response);
+                MHD_destroy_response(response);
+                return ret;
+            }
+            char *new_data = realloc(con_info->data, new_size + 1);
+            if (new_data == NULL)
                 return MHD_NO;
+            memcpy(new_data + con_info->size, upload_data, *upload_data_size);
+            new_data[new_size] = '\0';
+            con_info->data = new_data;
+            con_info->size = new_size;
+            fprintf(stderr, "DEBUG: Empfangener Chunk mit %zu Bytes\n", *upload_data_size);
             *upload_data_size = 0;
             return MHD_YES;
         }
