@@ -67,6 +67,7 @@ void send_post_request(const char *url, const char *post_data, struct MemoryStru
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() in send_post_request failed: %s\n", curl_easy_strerror(res));
+        fprintf(stderr, "curl_easy_perform() tried url: %s\n", url);
     }
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
