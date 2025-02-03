@@ -160,6 +160,7 @@ static int request_handler(void *cls,
     if (strcmp(url, "/init") == 0 && strcmp(method, "POST") == 0) {
         char response_msg[32];
         snprintf(response_msg, sizeof(response_msg), "CSV_COUNTER SET TO 0");
+        printf("/init Post\n");
         response = create_response(response_msg);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
         MHD_destroy_response(response);
