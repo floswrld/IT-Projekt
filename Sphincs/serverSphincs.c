@@ -8,7 +8,7 @@
 #include <time.h>
 #include <ctype.h>
 #include "../include/sphincs_utils/api.h"
-#include "../include/kyber_utils/cJSON.h"
+#include "../include/cJSON/cJSON.h"
 
 /* ---------------- DEFINITIONS ---------------- */
 #define PORT 8081

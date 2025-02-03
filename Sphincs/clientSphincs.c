@@ -9,7 +9,6 @@
 #include <openssl/err.h>
 #include <time.h>
 #include "../include/sphincs_utils/api.h"
-#include "../include/kyber_utils/cJSON.h"
 
 /* ---------------- DEFINITIONS ---------------- */
 #define SHA256_DIGEST_LENGTH 32 // Define SHA-256 hash length

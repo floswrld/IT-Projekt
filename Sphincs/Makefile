@@ -11,7 +11,7 @@ SPHINCS_UTILS_SRC = $(wildcard ../include/sphincs_utils/*.c)
 CJSON_SRC = $(wildcard ../include/cJSON/*.c)
 
 # Sources and targets
-CLIENT_SRC = clientSphincs.c $(COMMON_SRC) $(SPHINCS_UTILS_SRC) $(CJSON_SRC)
+CLIENT_SRC = clientSphincs.c $(COMMON_SRC) $(SPHINCS_UTILS_SRC)
 SERVER_SRC = serverSphincs.c $(COMMON_SRC) $(SPHINCS_UTILS_SRC) $(CJSON_SRC)
 
 CLIENT_TARGET = ClientSphincs
