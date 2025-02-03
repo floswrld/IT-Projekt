@@ -280,7 +280,7 @@ static int request_handler(void *cls,
 
         /* -------- Build and send HTTP Response -------- */
         char response_msg[256];
-        snprintf(response_msg, sizeof(response_msg), "{\"status\": \"Received\", \"verification time\": \"%ld microseconds\"}", verification_time);
+        snprintf(response_msg, sizeof(response_msg), "%ld", verification_time);
         response = create_response(response_msg);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
         MHD_destroy_response(response);
