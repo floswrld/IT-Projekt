@@ -217,6 +217,7 @@ int main() {
     /* -------- Init POST Request -------- */
 
     /* -------- Iterations -------- */
+    printf("Bitte nicht abbrechen, das Signing kann dauern!");
     for (int i = 0; i < ITERATIONS; i++) {
 
         struct MemoryStruct response;

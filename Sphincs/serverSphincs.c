@@ -26,7 +26,7 @@ FILE *log_file;
 /* ---------------- GLOBAL VARIABLES ---------------- */
 
 struct MHD_Response *create_response(const char *message) {
-    return MHD_create_response_from_buffer(strlen(message), (void *)message, MHD_RESPMEM_MUST_COPY);
+    return MHD_create_response_from_buffer(strlen(message), (void *)message, MHD_RESPMEM_PERSISTENT);
 }
 
 struct connection_info_struct {
@@ -189,10 +189,11 @@ static int request_handler(void *cls,
             con_info->data = new_data;
             con_info->size = new_size;
             *upload_data_size = 0;
+            fprintf(stderr, "DEBUG: Empfangener Chunk mit %zu Bytes\n", *upload_data_size);
             return MHD_YES;
         }
         /* -------- Load all POST Request Data -------- */
-
+        fprintf(stderr, "DEBUG: Gesamte Post Daten erhalten mit %zu Bytes\n", con_info->size);
         /* -------- Parse JSON with cJSON -------- */
         cJSON *json = cJSON_Parse(con_info->data);
         if (json == NULL) {
