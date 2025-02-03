@@ -13,7 +13,7 @@
 
 /* ---------------- DEFINITIONS ---------------- */
 #define SHA256_DIGEST_LENGTH 32 // Define SHA-256 hash length
-#define NUM_ITERATIONS 1000 // Define the number of iterations
+#define ITERATIONS 1000 // Define the number of iterations
 #define CSV_FILE "sphincs.csv"
 #define LOG_FILE "sphincs.txt"
 #define URL "https://ogcapi.hft-stuttgart.de/sta/icity_data_security/v1.1"
@@ -217,7 +217,7 @@ int main() {
         /* ---- Hash Encrypted Data ---- */
 
         /* ---- Keypair Generation ---- */
-        clock_gettime(CLOCK_MONOTONIC_RAW, &start_key)
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_key);
         if (PQCLEAN_SPHINCSSHAKE256SSIMPLE_CLEAN_crypto_sign_keypair(public_key, secret_key) != 0) {
             fprintf(log_file, "Key pair generation failed.\n");
             free(encrypted_data);
@@ -228,7 +228,7 @@ int main() {
         /* ---- Keypair Generation ---- */
 
         /* ---- Signature ---- */
-        clock_gettime(CLOCK_MONOTONIC_RAW, &start_signature)
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_signature);
         if (PQCLEAN_SPHINCSSHAKE256SSIMPLE_CLEAN_crypto_sign_signature(signature, &signature_len,
             data_hash, SHA256_DIGEST_LENGTH, secret_key) != 0) {
             fprintf(log_file, "Signing failed.\n");
