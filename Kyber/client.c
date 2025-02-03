@@ -273,6 +273,9 @@ int main() {
 
         /* ---- Free memory ---- */
         free(response.memory);
+        free(ba64_ciphertext);
+        free(ba64_iv);
+        free(ba64_encrypted_data);
         /* ---- Free memory ---- */
     }
     /* -------- Iterations -------- */

@@ -297,6 +297,9 @@ int main() {
         /* ---- Free memory ---- */
         free(response.memory);
         free(post_data);
+        free(ba64_public_key);
+        free(ba64_signature);
+        free(ba64_encrypted_data)
         /* ---- Free memory ---- */
     }
     /* -------- Iterations -------- */
