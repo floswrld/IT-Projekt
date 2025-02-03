@@ -274,7 +274,12 @@ int main() {
         /* ---- Encode Base64 ---- */
 
         /* ---- Build JSON to POST to Server ---- */
-        char post_data[8192];
+        size_t needed = strlen(ba64_public_key) + strlen(ba64_signature) + strlen(ba64_encrypted_data) + 100;
+        char *post_data = malloc(needed);
+        if (!post_data) {
+            fprintf(stderr, "Fehler bei malloc für post_data\n");
+            exit(EXIT_FAILURE);
+        }
         sprintf(post_data, "{ \"public_key\": \"%s\", \"signature\": \"%s\", \"encrypted_data\": \"%s\" }", ba64_public_key, ba64_signature, ba64_encrypted_data);
         /* ---- Build JSON to POST to Server ---- */
 
@@ -291,6 +296,7 @@ int main() {
 
         /* ---- Free memory ---- */
         free(response.memory);
+        free(post_data);
         /* ---- Free memory ---- */
     }
     /* -------- Iterations -------- */
