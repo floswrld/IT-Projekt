@@ -249,7 +249,7 @@ int main() {
 
         /* ---- Build JSON to POST to Server ---- */
         char post_data[8192];
-        sprintf(post_data, "{ \"public_key\": \"%s\", \"signature\": \"%s\", \"encrypted_data\": \"%s\" }", ba64_ciphertext, signature, ba64_encrypted_data);
+        sprintf(post_data, "{ \"public_key\": \"%s\", \"signature\": \"%s\", \"encrypted_data\": \"%s\" }", ba64_public_key, ba64_signature, ba64_encrypted_data);
         /* ---- Build JSON to POST to Server ---- */
 
         /* ---- Free memory ---- */
