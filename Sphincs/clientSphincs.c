@@ -274,7 +274,7 @@ int main() {
         /* ---- Encode Base64 ---- */
 
         /* ---- Build JSON to POST to Server ---- */
-        size_t needed = strlen(ba64_public_key) + strlen(ba64_signature) + strlen(ba64_encrypted_data) + 100;
+        size_t needed = strlen((const char *)ba64_public_key) + strlen((const char *)ba64_signature) + strlen((const char *)ba64_encrypted_data) + 100;
         char *post_data = malloc(needed);
         if (!post_data) {
             fprintf(stderr, "Fehler bei malloc für post_data\n");
