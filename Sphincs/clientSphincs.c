@@ -189,6 +189,9 @@ int main() {
     /* -------- Iterations -------- */
     for (int i = 0; i < ITERATIONS; i++) {
 
+        struct MemoryStruct response;
+        struct timespec start_signature, end_signature, start_key, end_key, start_encrypt, end_encrypt;
+
         /* ---- AES Key Generation ---- */
         uint8_t public_key[PQCLEAN_SPHINCSSHAKE256SSIMPLE_CLEAN_CRYPTO_PUBLICKEYBYTES];
         uint8_t secret_key[PQCLEAN_SPHINCSSHAKE256SSIMPLE_CLEAN_CRYPTO_SECRETKEYBYTES];
@@ -214,25 +217,27 @@ int main() {
         /* ---- Hash Encrypted Data ---- */
 
         /* ---- Keypair Generation ---- */
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_key)
         if (PQCLEAN_SPHINCSSHAKE256SSIMPLE_CLEAN_crypto_sign_keypair(public_key, secret_key) != 0) {
             fprintf(log_file, "Key pair generation failed.\n");
             free(encrypted_data);
             return 1;
         }
+        clock_gettime(CLOCK_MONOTONIC_RAW, &end_key);
+        uint64_t key_time = (end_key.tv_sec - start_key.tv_sec) * 1000000 + (end_key.tv_nsec - start_key.tv_nsec) / 1000;
         /* ---- Keypair Generation ---- */
 
         /* ---- Signature ---- */
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_signature)
         if (PQCLEAN_SPHINCSSHAKE256SSIMPLE_CLEAN_crypto_sign_signature(signature, &signature_len,
             data_hash, SHA256_DIGEST_LENGTH, secret_key) != 0) {
             fprintf(log_file, "Signing failed.\n");
             free(encrypted_data);
             return 1;
         }
+        clock_gettime(CLOCK_MONOTONIC_RAW, &end_signature);
+        uint64_t signature_time = (end_signature.tv_sec - start_signature.tv_sec) * 1000000 + (end_signature.tv_nsec - start_signature.tv_nsec) / 1000;
         /* ---- Signature ---- */
-
-        /* ---- Print Meassured Times in csv ---- */
-        fprintf(csv_file, "%d,%lu,%lu\n", i + 1, encap_time, encrypt_time);
-        /* ---- Print Meassured Times in csv ---- */
 
         /* ---- Encode Base64 ---- */
         unsigned char *ba64_public_key = base64_encode(public_key, PQCLEAN_SPHINCSSHAKE256SSIMPLE_CLEAN_CRYPTO_PUBLICKEYBYTES);
@@ -240,17 +245,21 @@ int main() {
         unsigned char *ba64_encrypted_data = base64_encode(encrypted_data, encrypted_data_len);
         /* ---- Encode Base64 ---- */
 
+        /* ---- Build JSON to POST to Server ---- */
+        char post_data[8192];
+        sprintf(post_data, "{ \"public_key\": \"%s\", \"signature\": \"%s\", \"encrypted_data\": \"%s\" }", ba64_public_key, ba64_signature, ba64_encrypted_data);
+        /* ---- Build JSON to POST to Server ---- */
+
         /* ---- POST Request ---- */
-        snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
+        snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_data_package");
         send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
         printf("Server response (iteration %d): %s\n", i + 1, response.memory);
         /* ---- POST Request ---- */
 
-        /* ---- Build JSON to POST to Server ---- */
-        char post_data[8192];
-        sprintf(post_data, "{ \"public_key\": \"%s\", \"signature\": \"%s\", \"encrypted_data\": \"%s\" }", ba64_public_key, ba64_signature, ba64_encrypted_data);
-        /* ---- Build JSON to POST to Server ---- */
+        /* ---- Print Meassured Times in csv ---- */
+        fprintf(csv_file, "%d,%lu,%lu,%lu\n", i + 1, encrypt_time, key_time, signature_time);
+        /* ---- Print Meassured Times in csv ---- */
 
         /* ---- Free memory ---- */
         free(response.memory);
