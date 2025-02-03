@@ -26,7 +26,7 @@ FILE *log_file;
 /* ---------------- GLOBAL VARIABLES ---------------- */
 
 struct MHD_Response *create_response(const char *message) {
-    return MHD_create_response_from_buffer(strlen(message), (void *)message, MHD_RESPMEM_PERSISTENT);
+    return MHD_create_response_from_buffer(strlen(message), (void *)message, MHD_RESPMEM_MUST_COPY);
 }
 
 struct connection_info_struct {
