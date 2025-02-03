@@ -160,7 +160,7 @@ static int request_handler(void *cls,
     if (strcmp(url, "/init") == 0 && strcmp(method, "POST") == 0) {
         char response_msg[32];
         snprintf(response_msg, sizeof(response_msg), "CSV_COUNTER SET TO 0");
-        printf("/init Post\n");
+        printf("/init\n");
         response = create_response(response_msg);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
         MHD_destroy_response(response);
@@ -174,6 +174,7 @@ static int request_handler(void *cls,
     if (strcmp(url, "/send_data_package") == 0 && strcmp(method, "POST") == 0) {
 
         /* -------- Load all POST Request Data -------- */
+        printf("/send_data_package\n");
         if (*upload_data_size > 0) {
             size_t new_size = con_info->size + *upload_data_size;
             if (new_size > MAX_POST_SIZE) {
