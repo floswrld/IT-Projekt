@@ -15,7 +15,7 @@
 #define MAX_POST_SIZE 8192
 #define SHA256_DIGEST_LENGTH 32 // Define SHA-256 hash length
 #define UNUSED(x) (void)(x)
-#define CSV_FILE "sphincs_server_timings.csv"
+#define CSV_FILE "sphincs_server.csv"
 #define LOG_FILE "sphincs_server_log.txt"
 /* ---------------- DEFINITIONS ---------------- */
 
