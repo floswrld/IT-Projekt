@@ -11,9 +11,6 @@
 #include "../include/kyber_utils/cJSON.h"
 
 /* ---------------- DEFINITIONS ---------------- */
-#ifndef MHD_Result
-typedef int MHD_Result;
-#endif
 #define PORT 8080
 #define MAX_POST_SIZE 8192
 #define UNUSED(x) (void)(x)

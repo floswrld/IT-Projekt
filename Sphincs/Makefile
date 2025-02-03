@@ -1,9 +1,9 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -I../include/common -I../include/sphincs_utils -Wall -Wextra -O2
+CFLAGS = -I../include/common -I../include/sphincs_utils -I../include/libmicrohttpd-stf-m2 -Wall -Wextra -O2
 
 # Libraries
-LIBS = -lssl -lcrypto -lcurl
+LIBS = -lssl -lcrypto -lcurl -lmicrohttpd
 
 # Source directories
 COMMON_SRC = $(wildcard ../include/common/*.c)
