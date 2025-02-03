@@ -208,7 +208,7 @@ static int request_handler(void *cls,
         cJSON *public_key_json = cJSON_GetObjectItem(json, "public_key");
         cJSON *signature_json = cJSON_GetObjectItem(json, "signature");
         cJSON *encrypted_data_json = cJSON_GetObjectItem(json, "encrypted_data");
-        if (!cJSON_IsString(ciphertext_json) ||
+        if (!cJSON_IsString(public_key_json) ||
                     !cJSON_IsString(signature_json) ||
                     !cJSON_IsString(encrypted_data_json)) {
             cJSON_Delete(json);
@@ -263,9 +263,8 @@ static int request_handler(void *cls,
         clock_gettime(CLOCK_MONOTONIC_RAW, &end_verification);
         uint64_t verification_time = (end_verification.tv_sec - start_verification.tv_sec) * 1000000 + (end_verification.tv_nsec - start_verification.tv_nsec) / 1000;
         if (verification_result != 0) {
-            fprintf(log_file, "Signature verification failed on iteration %d.\n", i + 1);
+            fprintf(log_file, "Signature verification failed on iteration %d.\n", CSV_COUNTER + 1);
             free(decoded_signature);
-            free(data);
             return 1;
         } else {
             fprintf(log_file, "Signature verification successful on iteration %d.\n", i + 1);
@@ -291,9 +290,6 @@ static int request_handler(void *cls,
         cJSON_Delete(json);
         free(con_info->data);
         free(con_info);
-        free(decoded_ciphertext);
-        free(decoded_iv);
-        free(decoded_encrypted_data);
         *con_cls = NULL;
         return ret;
         /* -------- Free memory -------- */
