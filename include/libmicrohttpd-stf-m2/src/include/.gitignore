@@ -1,0 +1,5 @@
+microhttpd2_inline_daemon_documentation.h.in
+microhttpd2_inline_response_documentation.h.in
+d_options.json
+options-generator
+r_options.json
