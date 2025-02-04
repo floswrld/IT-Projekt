@@ -182,6 +182,8 @@ static int request_handler(void *cls,
                 printf("Received to much data. MAX_POST_SIZE:%zu bytes. Received: %zu bytes\n", MAX_POST_SIZE, new_size);
                 ret = MHD_queue_response(connection, MHD_HTTP_CONTENT_TOO_LARGE, response);
                 MHD_destroy_response(response);
+                free(con_info->data);
+                free(con_info);
                 return ret;
             }
             char *new_data = realloc(con_info->data, new_size + 1);
