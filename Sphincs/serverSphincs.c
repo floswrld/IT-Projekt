@@ -10,6 +10,7 @@
 #include "../include/sphincs_utils/api.h"
 #include "../include/cJSON/cJSON.h"
 
+
 /* ---------------- DEFINITIONS ---------------- */
 #define PORT 8081
 #define MAX_POST_SIZE 65536
