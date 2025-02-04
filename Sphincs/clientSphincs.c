@@ -207,7 +207,7 @@ int main() {
         printf("Unable to create output files.\n");
         return 1;
     }
-    fprintf(csv_file, "Iteration, AES256 Encryption (microseconds), Key Generation (microseconds), Signing (microseconds)\n");
+    fprintf(csv_file, "Iteration, AES256 Encryption (microseconds), Key Generation (microseconds), Signing (microseconds), Verification (microseconds)\n");
     /* -------- Init files -------- */
 
     /* -------- Init POST Request -------- */
@@ -289,11 +289,11 @@ int main() {
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_data_package");
         send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
-        printf("Server response (iteration %d): %s\n", i + 1, response);
+        printf("Server response (iteration %d): %s\n", i + 1, response.memory);
         /* ---- POST Request ---- */
 
         /* ---- Print Meassured Times in csv ---- */
-        fprintf(csv_file, "%d,%lu,%lu,%lu\n", i + 1, encrypt_time, key_time, signature_time);
+        fprintf(csv_file, "%d,%lu,%lu,%lu%lu\n", i + 1, encrypt_time, key_time, signature_time, response.memory);
         /* ---- Print Meassured Times in csv ---- */
 
         /* ---- Free memory ---- */
