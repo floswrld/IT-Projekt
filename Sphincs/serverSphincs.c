@@ -179,7 +179,7 @@ static int request_handler(void *cls,
             size_t new_size = con_info->size + *upload_data_size;
             if (new_size > MAX_POST_SIZE) {
                 response = create_response("{\"error\": \"POST data too large\"}");
-                printf("Received to much data. MAX_POST_SIZE:%zu bytes. Received: %zu bytes\n", MAX_POST_SIZE, new_size);
+                printf("Received to much data. MAX_POST_SIZE:%u bytes. Received: %zu bytes\n", MAX_POST_SIZE, new_size);
                 ret = MHD_queue_response(connection, MHD_HTTP_CONTENT_TOO_LARGE, response);
                 MHD_destroy_response(response);
                 free(con_info->data);
