@@ -20,7 +20,7 @@ iteration = 0
 # files for logging
 log_file = open('server_output_dh.txt', 'w')
 csv_file = open('server_timings_dh.csv', 'w')
-csv_file.write("Iteration,Key Generation Time (s),Shared Secret Time (s),AES Decryption Time (s)\n")
+csv_file.write("Iteration,Key Generation Time (µs),Shared Secret Time (µs),AES Decryption Time (µs)\n")
 
 @app.route('/init', methods=['GET'])
 def init_connection():
@@ -52,7 +52,7 @@ def key_exchange():
     start_time = time.time()
     server_private_key = parameters.generate_private_key()
     server_public_key = server_private_key.public_key()
-    key_generation_time = time.time() - start_time
+    key_generation_time = (time.time() - start_time) * 1_000_000
     
     print(f"[Server] Schlüsselgenerierung abgeschlossen in {key_generation_time:.6f} s")
     print("[Server] Empfange Client Public Key...")
@@ -66,7 +66,7 @@ def key_exchange():
     start_time = time.time()
     client_public_key = serialization.load_pem_public_key(client_public_key_bytes)
     shared_secret = server_private_key.exchange(client_public_key)
-    shared_secret_time = time.time() - start_time
+    shared_secret_time = (time.time() - start_time) * 1_000_000
     
     print(f"[Server] Shared Secret generiert in {shared_secret_time:.6f} s")
     print("[Server] Sende Server Public Key zum Client...")
@@ -113,20 +113,20 @@ def decrypt_data():
     cipher = Cipher(algorithms.AES(aes_key), modes.CBC(iv), backend=default_backend())
     decryptor = cipher.decryptor()
     decrypted_padded_message = decryptor.update(encrypted_data) + decryptor.finalize()
-    decryption_time = time.time() - start_time
+    decryption_time = (time.time() - start_time) * 1_000_000
     
     # Entpadding
     unpadder = PKCS7(algorithms.AES.block_size).unpadder()
     decrypted_message = unpadder.update(decrypted_padded_message) + unpadder.finalize()
     
     # Logging
-    log_file.write(f"Iteration {iteration}: Key Generation: {data['key_generation_time']:.6f} s, "
-                   f"Shared Secret: {data['shared_secret_time']:.6f} s, "
-                   f"AES Decryption: {decryption_time:.6f} s\n")
+    log_file.write(f"Iteration {iteration}: Key Generation: {data['key_generation_time']:.6f} µs, "
+                   f"Shared Secret: {data['shared_secret_time']:.6f} µs, "
+                   f"AES Decryption: {decryption_time:.6f} µs\n")
     csv_file.write(f"{iteration},{data['key_generation_time']:.6f},"
                    f"{data['shared_secret_time']:.6f},{decryption_time:.6f}\n")
     
-    print(f"[Server] Entschlüsselung abgeschlossen in {decryption_time:.6f} s")
+    print(f"[Server] Entschlüsselung abgeschlossen in {decryption_time:.6f} µs")
     return jsonify({'status': 'success'})
 
 if __name__ == '__main__':
