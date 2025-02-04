@@ -268,7 +268,7 @@ int main() {
         /* ---- POST Request ---- */
 
         /* ---- Print Meassured Times in csv ---- */
-        fprintf(csv_file, "%d,%lu,%lu%d\n", i + 1, encap_time, encrypt_time, response.memory);
+        fprintf(csv_file, "%d,%lu,%lu%s\n", i + 1, encap_time, encrypt_time, response.memory);
         /* ---- Print Meassured Times in csv ---- */
 
         /* ---- Free memory ---- */
