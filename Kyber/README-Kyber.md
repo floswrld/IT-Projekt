@@ -30,3 +30,5 @@ Der Client fragt nun nach dem Server, mit dem er sich verbinden möchte. Dazu di
 
 Nun läuft der Algorithmus.
 Die Messdaten werden in der File "kyber.csv" auf dem Client-Raspi gesichert
+
+Um den Server zu stoppen, einfach "stop" in die Konsole eingeben
