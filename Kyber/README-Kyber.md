@@ -6,25 +6,25 @@ Client-Raspi: Der Rapso, auf dem der Client-Code gehostet werden soll
 
 1. Folgende Befehle auf dem Server-Raspi ausführen:
 
-sudo apt install libssl-dev \n
-sudo apt install libcurl4-openssl-dev \n
-sudo apt install libmicrohttpd-dev \n
-sudo apt install ufw \n
-sudo ufw allow 8080 \n
-git clone https://github.com/floswrld/PQC-Alg-Compare.git \n
-cd PQC-Alg-Compare/Kyber \n
-make \n
-./ServerKyber \n
+sudo apt install libssl-dev<br>
+sudo apt install libcurl4-openssl-dev
+sudo apt install libmicrohttpd-dev
+sudo apt install ufw
+sudo ufw allow 8080
+git clone https://github.com/floswrld/PQC-Alg-Compare.git
+cd PQC-Alg-Compare/Kyber
+make
+./ServerKyber
 
 2. Folgende Befehle auf dem Client-Raspi ausführen:
 
-sudo apt install libssl-dev \n
-sudo apt install libcurl4-openssl-dev \n
-sudo apt install libmicrohttpd-dev \n
-git clone https://github.com/floswrld/PQC-Alg-Compare.git \n
-cd PQC-Alg-Compare/Kyber \n
-make \n
-./ClientKyber \n
+sudo apt install libssl-dev
+sudo apt install libcurl4-openssl-dev
+sudo apt install libmicrohttpd-dev
+git clone https://github.com/floswrld/PQC-Alg-Compare.git
+cd PQC-Alg-Compare/Kyber
+make
+./ClientKyber
 
 Der Client fragt nun nach dem Server, mit dem er sich verbinden möchte. Dazu die vom Server angezeigte <ip-address>:<host> kopieren, einfügen und entern.
 
