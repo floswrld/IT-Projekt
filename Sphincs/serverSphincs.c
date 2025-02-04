@@ -12,7 +12,7 @@
 
 /* ---------------- DEFINITIONS ---------------- */
 #define PORT 8081
-#define MAX_POST_SIZE 8192
+#define MAX_POST_SIZE 16384
 #define SHA256_DIGEST_LENGTH 32 // Define SHA-256 hash length
 #define UNUSED(x) (void)(x)
 #define CSV_FILE "sphincs_server.csv"
