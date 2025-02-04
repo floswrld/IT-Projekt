@@ -12,7 +12,9 @@ sudo apt install libmicrohttpd-dev<br>
 sudo apt install ufw<br>
 sudo ufw allow 8080<br>
 git clone https://github.com/floswrld/PQC-Alg-Compare.git<br>
-cd PQC-Alg-Compare/Kyber<br>
+cd PQC-Alg-Compare<br>
+git checkout IT-Projekt<br>
+cd Kyber<b>
 make<br>
 ./ServerKyber<br>
 
@@ -22,7 +24,9 @@ sudo apt install libssl-dev<br>
 sudo apt install libcurl4-openssl-dev<br>
 sudo apt install libmicrohttpd-dev<br>
 git clone https://github.com/floswrld/PQC-Alg-Compare.git<br>
-cd PQC-Alg-Compare/Kyber<br>
+cd PQC-Alg-Compare<br>
+git checkout IT-Projekt<br>
+cd Kyber<b>
 make<br>
 ./ClientKyber<br>
 
