@@ -283,7 +283,7 @@ int main() {
             exit(EXIT_FAILURE);
         }
         sprintf(post_data, "{ \"public_key\": \"%s\", \"signature\": \"%s\", \"encrypted_data\": \"%s\" }", ba64_public_key, ba64_signature, ba64_encrypted_data);
-        printf("%s\n", post_data);
+        printf("Post data size: %zu\n", needed);
         /* ---- Build JSON to POST to Server ---- */
 
         /* ---- POST Request ---- */
