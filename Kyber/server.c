@@ -14,7 +14,6 @@
 #define PORT 8080
 #define MAX_POST_SIZE 8192
 #define UNUSED(x) (void)(x)
-#define CSV_FILE "server_timings.csv"
 #define LOG_FILE "server_log.txt"
 /* ---------------- DEFINITIONS ---------------- */
 
@@ -22,7 +21,6 @@
 uint8_t CSV_COUNTER = 0;
 uint8_t global_secret_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_SECRETKEYBYTES];
 uint8_t global_public_key[PQCLEAN_KYBER1024_CLEAN_CRYPTO_PUBLICKEYBYTES];
-FILE *csv_file;
 FILE *log_file;
 /* ---------------- GLOBAL VARIABLES ---------------- */
 
@@ -275,11 +273,6 @@ static int request_handler(void *cls,
         MHD_destroy_response(response);
         /* -------- Build and send HTTP Response -------- */
 
-        /* -------- Print Meassured Times in csv -------- */
-        CSV_COUNTER++;
-        fprintf(csv_file, "%d,%lu,%lu\n", CSV_COUNTER, decap_time, decrypt_time);
-        /* -------- Print Meassured Times in csv -------- */
-
         /* -------- Free memory -------- */
         cJSON_Delete(json);
         free(con_info->data);
@@ -323,13 +316,11 @@ int printIpAddress() {
 
 int main() {
     /* -------- Init files -------- */
-    csv_file = fopen(CSV_FILE, "w");
     log_file = fopen(LOG_FILE, "w");
-    if (csv_file == NULL || log_file == NULL) {
+    if (log_file == NULL) {
         printf("Unable to create output files.\n");
         return 1;
     }
-    fprintf(csv_file, "Iteration,Decapsulation Time (microseconds),AES256 Decryption Time (microseconds)\n");
     /* -------- Init files -------- */
 
     /* -------- Generate Keypair -------- */
@@ -371,7 +362,6 @@ int main() {
     /* -------- End server -------- */
     MHD_stop_daemon(daemon);
     printf("Stopped Server\n");
-    fclose(csv_file);
     fclose(log_file);
     return 0;
     /* -------- End server -------- */

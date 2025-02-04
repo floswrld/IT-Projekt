@@ -15,13 +15,11 @@
 #define MAX_POST_SIZE 65536
 #define SHA256_DIGEST_LENGTH 32 // Define SHA-256 hash length
 #define UNUSED(x) (void)(x)
-#define CSV_FILE "sphincs_server.csv"
 #define LOG_FILE "sphincs_server_log.txt"
 /* ---------------- DEFINITIONS ---------------- */
 
 /* ---------------- GLOBAL VARIABLES ---------------- */
 uint8_t CSV_COUNTER = 0;
-FILE *csv_file;
 FILE *log_file;
 /* ---------------- GLOBAL VARIABLES ---------------- */
 
@@ -279,11 +277,6 @@ static int request_handler(void *cls,
 
         /* ######## Sphincs Algorithm End ######## */
 
-        /* -------- Print Meassured Times in csv -------- */
-        CSV_COUNTER++;
-        fprintf(csv_file, "%d,%lu\n", CSV_COUNTER, verification_time);
-        /* -------- Print Meassured Times in csv -------- */
-
         /* -------- Build and send HTTP Response -------- */
         char response_msg[16];
         snprintf(response_msg, sizeof(response_msg), "%ld", verification_time);
@@ -335,13 +328,11 @@ int printIpAddress() {
 
 int main() {
     /* -------- Init files -------- */
-    csv_file = fopen(CSV_FILE, "w");
     log_file = fopen(LOG_FILE, "w");
-    if (csv_file == NULL || log_file == NULL) {
-        printf("Unable to create output files.\n");
+    if (log_file == NULL) {
+        printf("Unable to create log file.\n");
         return 1;
     }
-    fprintf(csv_file, "Iteration, Verfication Time (microseconds)\n");
     /* -------- Init files -------- */
 
     /* -------- Generate DAEMON -------- */
@@ -376,7 +367,6 @@ int main() {
     /* -------- End server -------- */
     MHD_stop_daemon(daemon);
     printf("Stopped Server\n");
-    fclose(csv_file);
     fclose(log_file);
     return 0;
     /* -------- End server -------- */
