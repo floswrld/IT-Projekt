@@ -249,10 +249,6 @@ int main() {
         uint64_t encrypt_time = (end_encrypt.tv_sec - start_encrypt.tv_sec) * 1000000 + (end_encrypt.tv_nsec - start_encrypt.tv_nsec) / 1000;
         /* ---- AES256 Encryption ---- */
 
-        /* ---- Print Meassured Times in csv ---- */
-        fprintf(csv_file, "%d,%lu,%lu\n", i + 1, encap_time, encrypt_time);
-        /* ---- Print Meassured Times in csv ---- */
-
         /* ---- Encode Base64 ---- */
         unsigned char *ba64_ciphertext = base64_encode(ciphertext, sizeof(ciphertext));
         unsigned char *ba64_iv = base64_encode(iv, sizeof(iv));
@@ -268,8 +264,12 @@ int main() {
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_encrypted_data");
         send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
-        printf("Server response (iteration %d): %s\n", i + 1, response.memory);
+        printf("Server response (iteration %d): Decap,Decrypt: %s\n", i + 1, response.memory);
         /* ---- POST Request ---- */
+
+        /* ---- Print Meassured Times in csv ---- */
+        fprintf(csv_file, "%d,%lu,%lu%d\n", i + 1, encap_time, encrypt_time, response.memory);
+        /* ---- Print Meassured Times in csv ---- */
 
         /* ---- Free memory ---- */
         free(response.memory);

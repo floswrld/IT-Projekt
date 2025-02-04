@@ -267,11 +267,6 @@ static int request_handler(void *cls,
 
         /* ######## Kyber Algorithm End ######## */
 
-        /* -------- Print Meassured Times in csv -------- */
-        CSV_COUNTER++;
-        fprintf(csv_file, "%d,%lu,%lu\n", CSV_COUNTER, decap_time, decrypt_time);
-        /* -------- Print Meassured Times in csv -------- */
-
         /* -------- Build and send HTTP Response -------- */
         char response_msg[256];
         snprintf(response_msg, sizeof(response_msg), "%ld,%ld", decap_time, decrypt_time);
@@ -279,6 +274,11 @@ static int request_handler(void *cls,
         ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
         MHD_destroy_response(response);
         /* -------- Build and send HTTP Response -------- */
+
+        /* -------- Print Meassured Times in csv -------- */
+        CSV_COUNTER++;
+        fprintf(csv_file, "%d,%lu,%lu\n", CSV_COUNTER, decap_time, decrypt_time);
+        /* -------- Print Meassured Times in csv -------- */
 
         /* -------- Free memory -------- */
         cJSON_Delete(json);
