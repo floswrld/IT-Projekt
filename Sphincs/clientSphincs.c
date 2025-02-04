@@ -282,14 +282,14 @@ int main() {
             exit(EXIT_FAILURE);
         }
         sprintf(post_data, "{ \"public_key\": \"%s\", \"signature\": \"%s\", \"encrypted_data\": \"%s\" }", ba64_public_key, ba64_signature, ba64_encrypted_data);
-        printf("Post data size in iteration %d: %zu\n", i + 1, needed);
+        printf("Post data size in iteration %d: %zu bytes\n", i + 1, needed);
         /* ---- Build JSON to POST to Server ---- */
 
         /* ---- POST Request ---- */
         snprintf(buffer, BUFFER_SIZE, "%s%s", API_BASE_URL, "/send_data_package");
         send_post_request(buffer, post_data, &response);
         fprintf(log_file, "Server response (iteration %d): %s\n", i + 1, response.memory);
-        printf("Server response (iteration %d): %s\n", i + 1, response.memory);
+        printf("Server response (iteration %d): %s\n", i + 1, response);
         /* ---- POST Request ---- */
 
         /* ---- Print Meassured Times in csv ---- */
