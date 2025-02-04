@@ -280,7 +280,6 @@ static int request_handler(void *cls,
         /* ######## Sphincs Algorithm End ######## */
 
         /* -------- Print Meassured Times in csv -------- */
-        printf("CHECKPOINT");
         CSV_COUNTER++;
         fprintf(csv_file, "%d,%lu\n", CSV_COUNTER, verification_time);
         /* -------- Print Meassured Times in csv -------- */
