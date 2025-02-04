@@ -196,7 +196,7 @@ int main() {
         printf("Unable to create output files.\n");
         return 1;
     }
-    fprintf(csv_file, "Iteration,Encapsulation Time (microseconds),AES256 Encryption Time (microseconds)\n");
+    fprintf(csv_file, "Iteration,Encapsulation (microseconds),AES256 Encryption (microseconds),Decapsulation (microseconds),AES256 Decryption (microseconds)\n");
     /* -------- Init files -------- */
 
     /* -------- Init POST Request -------- */
@@ -268,7 +268,7 @@ int main() {
         /* ---- POST Request ---- */
 
         /* ---- Print Meassured Times in csv ---- */
-        fprintf(csv_file, "%d,%lu,%lu%s\n", i + 1, encap_time, encrypt_time, response.memory);
+        fprintf(csv_file, "%d,%lu,%lu,%s\n", i + 1, encap_time, encrypt_time, response.memory);
         /* ---- Print Meassured Times in csv ---- */
 
         /* ---- Free memory ---- */
