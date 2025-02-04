@@ -8,7 +8,9 @@ Cryptography on IOT Hardware" von Niyati Tumkur Venugopal aus September 2024.
 
 Verbessert wurde die Kommunikation - nicht mehr File-Based oder Socket-Based - durch eine REST-API.
 
-Im Branch "IT-Projekt" werden die Daten aus einer in der Masterthesis verwendeten URL mit der aus der Masterthesis genutzten Methode gefetched.
+Im Branch [IT-Projekt](https://github.com/floswrld/PQC-Alg-Compare/blob/IT-Projekt/)
+ werden die Daten aus einer in der Masterthesis verwendeten URL mit der aus der Masterthesis genutzten Methode gefetched.
+Im Branch [IT-Sicherheit](https://github.com/floswrld/PQC-Alg-Compare/blob/IT-Sicherheit/) werden die Daten aus einer bereitgestellten Excel, mit Date
 Die prinzipiellen Workflows wurden beibehalten.
 Zusätzlich werden nun mehr Daten erhoben. Einzusehen sind diese in der Vergleichsoberfläche.
 Was bei den jeweiligen Algorithmen-Varianten zu beachten ist, um sie zu starten, ist in den jeweiligen README's dokumentiert.
