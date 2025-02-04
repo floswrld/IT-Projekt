@@ -1,6 +1,7 @@
 cmake-build-debug/*
 .idea
 .DS_Store
+.venv
 *.csv
 *.txt
 ClientKyber
