@@ -13,7 +13,7 @@ Die prinzipiellen Workflows wurden beibehalten.
 Zusätzlich werden nun mehr Daten erhoben. Einzusehen sind diese in der Vergleichsoberfläche.
 Was bei den jeweiligen Algorithmen-Varianten zu beachten ist, um sie zu starten, ist in den jeweiligen README's dokumentiert.
 
-Kyber:                  cw
-Sphincs:                cw
-Diffie-Hellmann:        cw
+Kyber:                  [README-Kyber](/Kyber/README-Kyber.md)<br>
+Sphincs:                [README-Sphincs](/Sphincs/README-Sphincs.md)<br>
+Diffie-Hellman:         [README-DH](/Diffie-Hellman/README-DH.md)<br>
 Vergleichsoberfläche:   cw
