@@ -207,7 +207,7 @@ int main() {
         printf("Unable to create output files.\n");
         return 1;
     }
-    fprintf(csv_file, "Iteration,AES256 Encryption (microseconds), Key Generation(microseconds), Signing(microseconds), Verification(microseconds)\n");
+    fprintf(csv_file, "Iteration,AES256 Encryption (microseconds),Key Generation (microseconds),Signing (microseconds),Verification (microseconds)\n");
     /* -------- Init files -------- */
 
     /* -------- Init POST Request -------- */
