@@ -157,7 +157,6 @@ static int request_handler(void *cls,
                 response = create_response("{\"error\": \"POST data too large\"}");
                 ret = MHD_queue_response(connection, MHD_HTTP_CONTENT_TOO_LARGE, response);
                 MHD_destroy_response(response);
-                free(*upload_data);
                 free(con_info->data);
                 free(con_info);
                 return ret;
