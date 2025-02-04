@@ -11,8 +11,8 @@ KYBER_UTILS_SRC = $(wildcard ../include/kyber_utils/*.c)
 CJSON_SRC = $(wildcard ../include/cJSON/*.c)
 
 # Sources and targets
-CLIENT_SRC = client.c $(COMMON_SRC) $(KYBER_UTILS_SRC)
-SERVER_SRC = server.c $(COMMON_SRC) $(KYBER_UTILS_SRC) $(CJSON_SRC)
+CLIENT_SRC = clientKyber.c $(COMMON_SRC) $(KYBER_UTILS_SRC)
+SERVER_SRC = serverKyber.c $(COMMON_SRC) $(KYBER_UTILS_SRC) $(CJSON_SRC)
 
 CLIENT_TARGET = ClientKyber
 SERVER_TARGET = ServerKyber
