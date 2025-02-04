@@ -5,3 +5,5 @@ cmake-build-debug/*
 *.txt
 ClientKyber
 ServerKyber
+ClientSphincs
+ServerSphincs
