@@ -10,6 +10,6 @@ server_data = server_df.drop('Iteration', axis=1)
 
 merged_df = pd.concat([client_df.iloc[:len(server_df)], server_data], axis=1)
 
-merged_df.to_csv('measurements_dh.csv', index=False, float_format='%.6f')
+merged_df.to_csv('diffie-hellman.csv', index=False, float_format='%.6f')
 
 print(f"CSV-Dateien erfolgreich zusammengeführt! {len(merged_df)} vollständige Messungen.")
