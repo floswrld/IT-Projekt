@@ -12,9 +12,9 @@
 
 /* ---------------- DEFINITIONS ---------------- */
 #define PORT 8080
-#define MAX_POST_SIZE 8192
+#define MAX_POST_SIZE 16384
 #define UNUSED(x) (void)(x)
-#define LOG_FILE "server_log.txt"
+#define LOG_FILE "kyber_server_log.txt"
 /* ---------------- DEFINITIONS ---------------- */
 
 /* ---------------- GLOBAL VARIABLES ---------------- */
@@ -157,6 +157,9 @@ static int request_handler(void *cls,
                 response = create_response("{\"error\": \"POST data too large\"}");
                 ret = MHD_queue_response(connection, MHD_HTTP_CONTENT_TOO_LARGE, response);
                 MHD_destroy_response(response);
+                free(*upload_data);
+                free(con_info->data);
+                free(con_info);
                 return ret;
             }
             char *new_data = realloc(con_info->data, new_size + 1);

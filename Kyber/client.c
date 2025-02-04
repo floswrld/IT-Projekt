@@ -11,10 +11,10 @@
 #include "../include/kyber_utils/api.h"
 
 /* ---------------- DEFINITIONS ---------------- */
-#define ITERATIONS 100
+#define ITERATIONS 1000
 #define URL "https://ogcapi.hft-stuttgart.de/sta/icity_data_security/v1.1"
-#define CSV_FILE "client_timings.csv"
-#define LOG_FILE "client_log.txt"
+#define CSV_FILE "kyber.csv"
+#define LOG_FILE "kyber_client_log.txt"
 #define BUFFER_SIZE 256
 #define UNUSED(x) (void)(x)
 /* ---------------- DEFINITIONS ---------------- */
