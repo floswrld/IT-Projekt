@@ -27,7 +27,7 @@ FILE *log_file;
 /* ---------------- GLOBAL VARIABLES ---------------- */
 
 struct MHD_Response *create_response(const char *message) {
-    return MHD_create_response_from_buffer(strlen(message), (void *)message, MHD_RESPMEM_PERSISTENT);
+    return MHD_create_response_from_buffer(strlen(message), (void *)message, MHD_RESPMEM_MUST_COPY);
 }
 
 struct connection_info_struct {
@@ -231,11 +231,11 @@ static int request_handler(void *cls,
         uint8_t shared_secret[PQCLEAN_KYBER1024_CLEAN_CRYPTO_BYTES];
         unsigned char aes_key[32];
         unsigned char decrypted_data[4096];
-        struct timespec start_encap, end_encap, start_encrypt, end_encrypt;
+        struct timespec start_decap, end_decap, start_decrypt, end_decrypt;
         /* --- Init variables --- */
 
         /* --- Decapsulation --- */
-        clock_gettime(CLOCK_MONOTONIC_RAW, &start_encap);
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_decap);
         if (PQCLEAN_KYBER1024_CLEAN_crypto_kem_dec(shared_secret, decoded_ciphertext, global_secret_key) != 0) {
             cJSON_Delete(json);
             response = create_response("{\"error\": \"Decapsulation failed\"}");
@@ -249,8 +249,8 @@ static int request_handler(void *cls,
             *con_cls = NULL;
             return ret;
         }
-        clock_gettime(CLOCK_MONOTONIC_RAW, &end_encap);
-        uint64_t encap_time = (end_encap.tv_sec - start_encap.tv_sec) * 1000000 + (end_encap.tv_nsec - start_encap.tv_nsec) / 1000;
+        clock_gettime(CLOCK_MONOTONIC_RAW, &end_decap);
+        uint64_t decap_time = (end_decap.tv_sec - start_decap.tv_sec) * 1000000 + (end_decap.tv_nsec - start_decap.tv_nsec) / 1000;
         /* --- Decapsulation --- */
 
         /* --- SHA256 --- */
@@ -258,26 +258,23 @@ static int request_handler(void *cls,
         /* --- SHA256 --- */
 
         /* --- AES256 Decryption --- */
-        clock_gettime(CLOCK_MONOTONIC_RAW, &start_encrypt);
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_decrypt);
         int decrypted_data_len = aes_decrypt(decoded_encrypted_data, encrypted_data_len, aes_key, decoded_iv, decrypted_data);
         (void)decrypted_data_len;
-        clock_gettime(CLOCK_MONOTONIC_RAW, &end_encrypt);
-        uint64_t encrypt_time = (end_encrypt.tv_sec - start_encrypt.tv_sec) * 1000000 + (end_encrypt.tv_nsec - start_encrypt.tv_nsec) / 1000;
+        clock_gettime(CLOCK_MONOTONIC_RAW, &end_decrypt);
+        uint64_t decrypt_time = (end_decrypt.tv_sec - start_decrypt.tv_sec) * 1000000 + (end_decrypt.tv_nsec - start_decrypt.tv_nsec) / 1000;
         /* --- AES256 Decryption --- */
 
         /* ######## Kyber Algorithm End ######## */
 
         /* -------- Print Meassured Times in csv -------- */
         CSV_COUNTER++;
-        fprintf(csv_file, "%d,%lu,%lu\n", CSV_COUNTER, encap_time, encrypt_time);
+        fprintf(csv_file, "%d,%lu,%lu\n", CSV_COUNTER, decap_time, decrypt_time);
         /* -------- Print Meassured Times in csv -------- */
 
         /* -------- Build and send HTTP Response -------- */
         char response_msg[256];
-        snprintf(response_msg, sizeof(response_msg),
-                 "{\"status\": \"Received\", \"decapsulation_time\": \"%ld microseconds\", \"decryption_time\": \"%ld microseconds\", \"decrypted_data\": \"%.100s\"}",
-                 encap_time, encrypt_time, decrypted_data);
-
+        snprintf(response_msg, sizeof(response_msg), "%ld,%ld", decap_time, decrypt_time);
         response = create_response(response_msg);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
         MHD_destroy_response(response);
