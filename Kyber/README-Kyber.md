@@ -2,7 +2,7 @@ TODO's, um die Kyber-Implementierung auf zwei Raspi's zu nutzen:<br>
 
 Begriffe:<br>
 Server-Raspi: Der Raspi, auf dem der Server-Code gehostet werden soll<br>
-Client-Raspi: Der Rapso, auf dem der Client-Code gehostet werden soll
+Client-Raspi: Der Raspi, auf dem der Client-Code gehostet werden soll
 
 1. Folgende Befehle auf dem Server-Raspi ausführen:<br>
 
