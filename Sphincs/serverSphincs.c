@@ -12,7 +12,7 @@
 
 /* ---------------- DEFINITIONS ---------------- */
 #define PORT 8081
-#define MAX_POST_SIZE 16384
+#define MAX_POST_SIZE 65536
 #define SHA256_DIGEST_LENGTH 32 // Define SHA-256 hash length
 #define UNUSED(x) (void)(x)
 #define CSV_FILE "sphincs_server.csv"
@@ -179,6 +179,7 @@ static int request_handler(void *cls,
             size_t new_size = con_info->size + *upload_data_size;
             if (new_size > MAX_POST_SIZE) {
                 response = create_response("{\"error\": \"POST data too large\"}");
+                printf("Received to much data. MAX_POST_SIZE:%zu bytes. Received: %zu bytes\n", MAX_POST_SIZE, new_size);
                 ret = MHD_queue_response(connection, MHD_HTTP_CONTENT_TOO_LARGE, response);
                 MHD_destroy_response(response);
                 return ret;
