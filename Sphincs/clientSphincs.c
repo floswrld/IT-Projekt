@@ -12,7 +12,7 @@
 
 /* ---------------- DEFINITIONS ---------------- */
 #define SHA256_DIGEST_LENGTH 32 // Define SHA-256 hash length
-#define ITERATIONS 1000 // Define the number of iterations
+#define ITERATIONS 2 // Define the number of iterations
 #define CSV_FILE "sphincs.csv"
 #define LOG_FILE "sphincs_client_log.txt"
 #define URL "https://ogcapi.hft-stuttgart.de/sta/icity_data_security/v1.1"
